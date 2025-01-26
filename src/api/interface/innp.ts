@@ -8,7 +8,7 @@ export namespace Consumable {
     productLink: string;
   }
 
-  export interface RegisterUserParams {
+  export interface CreateParams {
     model: string;
     name: string;
     description: string;
@@ -27,12 +27,20 @@ export namespace Product {
     manualOssUrl: string;
   }
 
-  export interface RegisterUserParams {
+  export interface CreateParams {
     model: string;
     name: string;
     sellingPoints: string;
     imageUrl: string;
     manualOssUrl: string;
+  }
+
+  export interface UpdateParams extends Partial<CreateParams> {
+    id: number;
+  }
+
+  export interface DelParams {
+    id: number;
   }
 }
 

@@ -22,6 +22,11 @@
               >查看二维码</el-button
             >
             <el-button link><el-link :href="scoped.row.manualOssUrl" target="_blank" underline>下载说明书</el-link></el-button>
+            <el-popconfirm title="确认要删除这一项吗？" confirm-button-type="danger" @confirm="handleDel(scoped.row.id)">
+              <template #reference>
+                <el-button type="danger" link>删除</el-button>
+              </template>
+            </el-popconfirm>
           </div>
         </template>
       </el-table-column>
@@ -101,9 +106,9 @@
 import { Product } from "@/api/interface/innp";
 import { onBeforeMount, reactive, ref, toRaw } from "vue";
 import { Plus } from "@element-plus/icons-vue";
-import { getProductList, addProduct, getOSSSignature } from "@/api/modules/innp";
+import { getProductList, addProduct, getOSSSignature, delProduct } from "@/api/modules/innp";
 import QRCode from "qrcode";
-import { genFileId, UploadFile, UploadFiles, UploadInstance, UploadProps, UploadRawFile } from "element-plus";
+import { ElMessage, genFileId, UploadFile, UploadFiles, UploadInstance, UploadProps, UploadRawFile } from "element-plus";
 
 const handleAddBtn = () => {
   dialogVisible.value = true;
@@ -278,6 +283,16 @@ function downloadQrCode() {
   link.href = url;
   link.download = `${watchQrCodeItem.value?.name}二维码.png`;
   link.click();
+}
+
+async function handleDel(id: number) {
+  const delRes = await delProduct({ id });
+  if (delRes.code === 200) {
+    ElMessage.success("删除成功");
+    refreshTable();
+  } else {
+    ElMessage.error("删除失败");
+  }
 }
 </script>
 
