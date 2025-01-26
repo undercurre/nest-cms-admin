@@ -22,6 +22,7 @@
               >查看二维码</el-button
             >
             <el-button link><el-link :href="scoped.row.manualOssUrl" target="_blank" underline>下载说明书</el-link></el-button>
+            <el-button color="#409EFF" plain link @click="handleEditStart(scoped.row)">修改</el-button>
             <el-popconfirm title="确认要删除这一项吗？" confirm-button-type="danger" @confirm="handleDel(scoped.row.id)">
               <template #reference>
                 <el-button type="danger" link>删除</el-button>
@@ -32,7 +33,7 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" title="添加产品" width="500">
+    <el-dialog v-model="dialogVisible" :title="dialogActionType === 'add' ? '添加产品' : '修改产品'" width="500">
       <el-form :model="form" label-width="auto" style="max-width: 600px">
         <el-form-item label="产品型号">
           <el-input v-model="form.model" />
@@ -43,6 +44,7 @@
         <el-form-item label="产品图片">
           <el-upload
             :action="imgAction"
+            :file-list="uploadImgFileList"
             ref="uploadImg"
             list-type="picture-card"
             :auto-upload="false"
@@ -54,7 +56,7 @@
           >
             <el-icon><Plus /></el-icon>
             <template #file="{ file }">
-              <div>
+              <div class="preview_container">
                 <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
               </div>
             </template>
@@ -67,6 +69,7 @@
           <el-upload
             class="upload_container"
             :action="manualAction"
+            :file-list="uploadManualFileList"
             drag
             ref="uploadManual"
             :auto-upload="false"
@@ -106,12 +109,22 @@
 import { Product } from "@/api/interface/innp";
 import { onBeforeMount, reactive, ref, toRaw } from "vue";
 import { Plus } from "@element-plus/icons-vue";
-import { getProductList, addProduct, getOSSSignature, delProduct } from "@/api/modules/innp";
+import { getProductList, addProduct, getOSSSignature, delProduct, updateProduct } from "@/api/modules/innp";
 import QRCode from "qrcode";
-import { ElMessage, genFileId, UploadFile, UploadFiles, UploadInstance, UploadProps, UploadRawFile } from "element-plus";
+import {
+  ElMessage,
+  genFileId,
+  UploadFile,
+  UploadFiles,
+  UploadInstance,
+  UploadProps,
+  UploadRawFile,
+  UploadUserFile
+} from "element-plus";
 
 const handleAddBtn = () => {
   dialogVisible.value = true;
+  dialogActionType.value = "add";
 };
 
 const productList = ref<Array<Product.Entity>>();
@@ -125,9 +138,10 @@ onBeforeMount(() => {
   refreshTable();
 });
 
+const dialogActionType = ref<"add" | "edit">("add");
 const dialogVisible = ref(false);
 
-const form = reactive({
+let form = reactive({
   model: "",
   name: "",
   imageUrl: "",
@@ -135,7 +149,18 @@ const form = reactive({
   manualOssUrl: ""
 });
 
+const resetForm = () => {
+  form = reactive({
+    model: "",
+    name: "",
+    imageUrl: "",
+    sellingPoints: "",
+    manualOssUrl: ""
+  });
+};
+
 const uploadImg = ref<UploadInstance>();
+const uploadImgFileList = ref<UploadUserFile[]>([]);
 const uploadImgSuccessMark = ref(false);
 const uploadRawFileImg = ref<File>();
 const imgAction = ref("#");
@@ -167,6 +192,7 @@ const handleImgSuccess = (response: any, uploadFile: UploadFile, uploadFiles: Up
 };
 
 const uploadManual = ref<UploadInstance>();
+const uploadManualFileList = ref<UploadUserFile[]>([]);
 const uploadManualSuccessMark = ref(false);
 const uploadRawFileManual = ref<File>();
 const manualAction = ref("#");
@@ -205,10 +231,25 @@ const submitForm = async () => {
     sellingPoints: form.sellingPoints,
     manualOssUrl: form.manualOssUrl
   };
-  const res = await addProduct(clone);
-  if (res.code === 200) {
+  let resCode: string | number = 0;
+  let resMsg: string = "";
+  if (dialogActionType.value === "add") {
+    const res = await addProduct(clone);
+    resCode = res.code;
+    resMsg = res.msg;
+  } else {
+    if (!curEditItem.value) return;
+    const res = await updateProduct({ ...clone, id: curEditItem.value.id });
+    resCode = res.code;
+    resMsg = res.msg;
+  }
+
+  if (resCode === 200) {
     dialogVisible.value = false;
     refreshTable();
+    resetForm();
+  } else {
+    ElMessage.error(resMsg);
   }
 };
 
@@ -285,6 +326,36 @@ function downloadQrCode() {
   link.click();
 }
 
+const curEditItem = ref<Product.Entity>();
+async function handleEditStart(row: Product.Entity) {
+  curEditItem.value = row;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, ...others } = row;
+  form = reactive(others);
+  dialogActionType.value = "edit";
+  const fakerImgRawFile: UploadUserFile = {
+    // 从 url decodeURIComponent 解码成中文
+    name: getFileNameFromUrl(decodeURIComponent(row.imageUrl)) || "image.jpg",
+    url: row.imageUrl
+  };
+  const fakerManualRawFile: UploadUserFile = {
+    // 从 url decodeURIComponent 解码成中文
+    name: getFileNameFromUrl(decodeURIComponent(row.manualOssUrl)) || "manual.pdf",
+    url: row.manualOssUrl
+  };
+  uploadImgFileList.value = [fakerImgRawFile];
+  uploadManualFileList.value = [fakerManualRawFile];
+  dialogVisible.value = true;
+}
+
+function getFileNameFromUrl(url: string) {
+  // 使用正则从 URL 中提取文件名
+  const match = url.match(/\/([^/]+)$/);
+
+  // 如果匹配成功，返回文件名，否则返回 null
+  return match ? match[1] : null;
+}
+
 async function handleDel(id: number) {
   const delRes = await delProduct({ id });
   if (delRes.code === 200) {
@@ -345,5 +416,13 @@ async function handleDel(id: number) {
 .upload_container {
   width: 100%;
   height: 100%;
+}
+
+.preview_container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

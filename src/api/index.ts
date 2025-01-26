@@ -106,7 +106,7 @@ class RequestHttp {
     return this.service.post(url, params, _object);
   }
   patch<T>(url: string, params?: object, _object = {}): Promise<ResultData<T>> {
-    return this.service.put(url, params, _object);
+    return this.service.patch(url, params, _object);
   }
   put<T>(url: string, params?: object, _object = {}): Promise<ResultData<T>> {
     return this.service.put(url, params, _object);
