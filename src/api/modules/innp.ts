@@ -1,4 +1,4 @@
-import { Consumable, Product } from "@/api/interface/innp";
+import { Consumable, OSS, Product } from "@/api/interface/innp";
 import { PORT1 } from "@/api/config/servicePort";
 import http from "@/api";
 
@@ -28,4 +28,11 @@ export const getProductList = () => {
  */
 export const addProduct = (params: Product.RegisterUserParams) => {
   return http.post<Product.Entity>(PORT1 + `/products`, params, { loading: true });
+};
+
+/**
+ * @name 获取OSS签名
+ */
+export const getOSSSignature = (params: OSS.GetOSSSignatureParams) => {
+  return http.post<OSS.Signature>(PORT1 + `/oss/signature`, params, { loading: true });
 };

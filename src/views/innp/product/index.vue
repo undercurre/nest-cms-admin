@@ -36,13 +36,44 @@
           <el-input v-model="form.name" />
         </el-form-item>
         <el-form-item label="产品图片">
-          <el-input v-model="form.imageUrl" />
+          <el-upload
+            :action="imgAction"
+            ref="uploadImg"
+            list-type="picture-card"
+            :auto-upload="false"
+            :limit="1"
+            :data="extraImgData"
+            :on-change="handleImgChange"
+            :on-success="handleImgSuccess"
+            :on-exceed="handleImgExceed"
+          >
+            <el-icon><Plus /></el-icon>
+            <template #file="{ file }">
+              <div>
+                <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
+              </div>
+            </template>
+          </el-upload>
         </el-form-item>
         <el-form-item label="产品卖点">
           <el-input v-model="form.sellingPoints" />
         </el-form-item>
         <el-form-item label="产品说明书">
-          <el-input v-model="form.manualOssUrl" />
+          <el-upload
+            class="upload_container"
+            :action="manualAction"
+            drag
+            ref="uploadManual"
+            :auto-upload="false"
+            :limit="1"
+            :data="extraManualData"
+            :on-change="handleManualChange"
+            :on-success="handleManualSuccess"
+            :on-exceed="handleManualExceed"
+          >
+            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <div class="el-upload__text"><em>说明书</em></div>
+          </el-upload>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -68,10 +99,11 @@
 
 <script setup lang="ts" name="user">
 import { Product } from "@/api/interface/innp";
-import { onBeforeMount, reactive, ref } from "vue";
+import { onBeforeMount, reactive, ref, toRaw } from "vue";
 import { Plus } from "@element-plus/icons-vue";
-import { getProductList, addProduct } from "@/api/modules/innp";
+import { getProductList, addProduct, getOSSSignature } from "@/api/modules/innp";
 import QRCode from "qrcode";
+import { genFileId, UploadFile, UploadFiles, UploadInstance, UploadProps, UploadRawFile } from "element-plus";
 
 const handleAddBtn = () => {
   dialogVisible.value = true;
@@ -98,7 +130,69 @@ const form = reactive({
   manualOssUrl: ""
 });
 
-const handleConfirm = async () => {
+const uploadImg = ref<UploadInstance>();
+const uploadImgSuccessMark = ref(false);
+const uploadRawFileImg = ref<File>();
+const imgAction = ref("#");
+const extraImgData = ref<{
+  key: string;
+  OSSAccessKeyId: string;
+  policy: string;
+  signature: string;
+  success_action_status: string;
+}>();
+const handleImgExceed: UploadProps["onExceed"] = files => {
+  uploadImg.value!.clearFiles();
+  const file = files[0] as UploadRawFile;
+  file.uid = genFileId();
+  uploadImg.value!.handleStart(file);
+};
+
+const handleImgChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => {
+  console.log("uploadImg", uploadFile, uploadFiles);
+  uploadRawFileImg.value = toRaw(uploadFile.raw);
+};
+
+const handleImgSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
+  console.log("imgSuccess", response, uploadFile, uploadFiles);
+  uploadImgSuccessMark.value = true;
+  if (uploadManualSuccessMark.value) {
+    submitForm();
+  }
+};
+
+const uploadManual = ref<UploadInstance>();
+const uploadManualSuccessMark = ref(false);
+const uploadRawFileManual = ref<File>();
+const manualAction = ref("#");
+const extraManualData = ref<{
+  key: string;
+  OSSAccessKeyId: string;
+  policy: string;
+  signature: string;
+  success_action_status: string;
+}>();
+const handleManualExceed: UploadProps["onExceed"] = files => {
+  uploadManual.value!.clearFiles();
+  const file = files[0] as UploadRawFile;
+  file.uid = genFileId();
+  uploadManual.value!.handleStart(file);
+};
+
+const handleManualChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => {
+  console.log("uploadManual", uploadFile, uploadFiles);
+  uploadRawFileManual.value = toRaw(uploadFile.raw);
+};
+
+const handleManualSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
+  console.log("manualSuccess", response, uploadFile, uploadFiles);
+  uploadManualSuccessMark.value = true;
+  if (uploadImgSuccessMark.value) {
+    submitForm();
+  }
+};
+
+const submitForm = async () => {
   const clone = {
     model: form.model,
     name: form.name,
@@ -113,6 +207,50 @@ const handleConfirm = async () => {
   }
 };
 
+const handleConfirm = async () => {
+  const signatureImgRes = await getOSSSignature({ fileType: "image" });
+  console.log(signatureImgRes);
+  const signatureManualRes = await getOSSSignature({ fileType: "pdf" });
+  console.log(signatureManualRes);
+  imgAction.value = signatureImgRes.data.host;
+  manualAction.value = signatureManualRes.data.host;
+
+  const imgUrlKey = generateFileName(signatureImgRes.data, uploadRawFileImg.value);
+  const manualUrlKey = generateFileName(signatureManualRes.data, uploadRawFileManual.value);
+
+  extraImgData.value = {
+    key: imgUrlKey,
+    OSSAccessKeyId: signatureImgRes.data.accessId,
+    policy: signatureImgRes.data.policy,
+    signature: signatureImgRes.data.signature,
+    success_action_status: "200"
+  };
+
+  form.imageUrl = imgAction.value + "/" + imgUrlKey;
+
+  extraManualData.value = {
+    key: manualUrlKey,
+    OSSAccessKeyId: signatureManualRes.data.accessId,
+    policy: signatureManualRes.data.policy,
+    signature: signatureManualRes.data.signature,
+    success_action_status: "200"
+  };
+
+  form.manualOssUrl = manualAction.value + "/" + manualUrlKey;
+  console.log("key", imgUrlKey, manualUrlKey);
+  // 先上传两份文件
+  uploadImg.value!.submit();
+  uploadManual.value!.submit();
+};
+
+// 生成文件名，作为 key 使用
+const generateFileName = (ossData, file) => {
+  console.log(file, file.name);
+  const suffix = file.name.slice(file.name.lastIndexOf("."));
+  const filename = Date.now() + suffix;
+  return ossData.dir + filename;
+};
+
 let canvas = document.getElementById("qrcode");
 const watchQrCodeItem = ref<Product.Entity>();
 const dialogQrcodeVisible = ref(false);
@@ -122,10 +260,15 @@ const watchQrCode = async (e: Product.Entity) => {
   requestAnimationFrame(() => {
     canvas = document.getElementById("qrcode");
     console.log(canvas);
-    QRCode.toCanvas(canvas, `http://172.27.36.208/markH5/product/${watchQrCodeItem.value?.id}`, { width: 200 }, error => {
-      if (error) console.error(error);
-      console.log("二维码生成成功");
-    });
+    QRCode.toCanvas(
+      canvas,
+      `${import.meta.env.VITE_API_URL}markH5/product/${watchQrCodeItem.value?.id}`,
+      { width: 200 },
+      error => {
+        if (error) console.error(error);
+        console.log("二维码生成成功");
+      }
+    );
   });
 };
 function downloadQrCode() {
@@ -182,5 +325,10 @@ function downloadQrCode() {
 .qrcode {
   width: 200px;
   height: 200px;
+}
+
+.upload_container {
+  width: 100%;
+  height: 100%;
 }
 </style>

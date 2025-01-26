@@ -35,3 +35,18 @@ export namespace Product {
     manualOssUrl: string;
   }
 }
+
+export namespace OSS {
+  export interface Signature {
+    expire: string;
+    policy: string;
+    signature: string;
+    accessId: string;
+    host: string;
+    dir: string;
+  }
+
+  export interface GetOSSSignatureParams {
+    fileType: "image" | "pdf";
+  }
+}
