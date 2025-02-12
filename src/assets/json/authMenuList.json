@@ -42,6 +42,34 @@
             "isAffix": false,
             "isKeepAlive": true
           }
+        },
+        {
+          "path": "/innp/guide",
+          "name": "guide",
+          "component": "/innp/guide/index",
+          "meta": {
+            "icon": "Menu",
+            "title": "指引配置",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        },
+        {
+          "path": "/innp/diet",
+          "name": "diet",
+          "component": "/innp/diet/index",
+          "meta": {
+            "icon": "Menu",
+            "title": "食谱配置",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
         }
       ]
     },

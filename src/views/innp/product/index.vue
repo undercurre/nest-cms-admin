@@ -6,16 +6,16 @@
       <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
     </div>
     <el-table class="table" :data="productList" style="width: 100%">
-      <el-table-column prop="id" label="Id" width="120" />
-      <el-table-column prop="model" label="型号" />
-      <el-table-column prop="name" label="名称" />
-      <el-table-column prop="imageUrl" label="图片">
+      <el-table-column prop="id" label="Id" width="50" align="center" />
+      <el-table-column prop="model" label="型号" align="center" />
+      <el-table-column prop="name" label="名称" align="center" />
+      <el-table-column prop="imageUrl" label="图片" align="center">
         <template #default="scoped">
           <img class="product_img_preview" :src="scoped.row.imageUrl" />
         </template>
       </el-table-column>
-      <el-table-column prop="sellingPoints" label="卖点" />
-      <el-table-column fixed="right" label="操作">
+      <el-table-column prop="sellingPoints" label="卖点" align="center" />
+      <el-table-column fixed="right" label="操作" align="center">
         <template #default="scoped">
           <div class="btns">
             <el-button class="watch_qrcode" link type="primary" size="small" @click="watchQrCode(scoped.row)"

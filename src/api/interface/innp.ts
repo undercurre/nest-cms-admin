@@ -55,6 +55,112 @@ export namespace OSS {
   }
 
   export interface GetOSSSignatureParams {
-    fileType: "image" | "pdf";
+    fileType: "image" | "pdf" | "mp4";
+  }
+}
+
+export namespace Guide {
+  export interface Entity {
+    id: number;
+    title: string;
+    createdAt: string;
+    video: string;
+    description: string;
+  }
+
+  export interface CreateParams {
+    title: string;
+    video: string;
+    description: string;
+  }
+
+  export interface UpdateParams extends Partial<CreateParams> {
+    id: number;
+  }
+
+  export interface DelParams {
+    id: number;
+  }
+}
+
+export namespace Diet {
+  export interface Entity {
+    id: number;
+    name: string;
+    taste: string;
+    nutrition_info: Record<string, string>;
+    createdAt: string;
+    image: string;
+    description: string;
+    category: string;
+    time: number;
+    difficulty: number;
+    ingredients: Ingredients.Entity[];
+    steps: Steps.Entity[];
+  }
+
+  export interface CreateParams {
+    name: string;
+    taste: string;
+    nutrition_info: string;
+    image: string;
+    description: string;
+    category: string;
+    time: number;
+    difficulty: number;
+    ingredients: { name: string; quantity: string }[];
+    steps: { step_number: number; description: string; image_url?: null | string }[];
+  }
+
+  export interface UpdateParams extends Partial<CreateParams> {
+    id: number;
+  }
+
+  export interface DelParams {
+    id: number;
+  }
+}
+
+export namespace Ingredients {
+  export interface Entity {
+    id: number;
+    name: string;
+    quantity: string;
+  }
+
+  export interface CreateParams {
+    name: string;
+    quantity: string;
+  }
+
+  export interface UpdateParams extends Partial<CreateParams> {
+    id: number;
+  }
+
+  export interface DelParams {
+    id: number;
+  }
+}
+
+export namespace Steps {
+  export interface Entity {
+    id: number;
+    step_number: number;
+    description: string;
+    image_url: null | string;
+  }
+
+  export interface CreateParams {
+    step_number: number;
+    description: string;
+    image_url: null | string;
+  }
+
+  export interface UpdateParams extends Partial<CreateParams> {
+    id: number;
+  }
+
+  export interface DelParams {
+    id: number;
   }
 }
