@@ -17,8 +17,8 @@ export const addUser = (params: User.RegisterUserParams) => {
 };
 
 // 编辑用户
-export const editUserPass = (id: number, pass: string) => {
-  return http.patch(PORT1 + `/users/${id}`, { password: pass });
+export const editUserPass = (id: number, oldPass: string, newPass: string) => {
+  return http.patch(PORT1 + `/users/pass/${id}`, { oldPass, newPass });
 };
 
 // 删除用户

@@ -37,7 +37,10 @@
         <el-form-item label="用户名">
           <el-input v-model="editForm.username" disabled />
         </el-form-item>
-        <el-form-item label="密码">
+        <el-form-item label="旧密码">
+          <el-input v-model="editForm.old" type="password" show-password />
+        </el-form-item>
+        <el-form-item label="新密码">
           <el-input v-model="editForm.password" type="password" show-password />
         </el-form-item>
       </el-form>
@@ -58,6 +61,10 @@ import { onBeforeMount, reactive, ref } from "vue";
 import dayjs from "dayjs";
 import { Plus } from "@element-plus/icons-vue";
 import md5 from "md5";
+import router from "@/routers";
+import { LOGIN_URL } from "@/config";
+import { useUserStore } from "@/stores/modules/user";
+import { ElMessage } from "element-plus";
 
 const handleAddBtn = () => {
   dialogVisible.value = true;
@@ -119,19 +126,31 @@ const dialogEditVisible = ref(false);
 
 let editForm = reactive({
   username: "",
+  old: "",
   password: ""
 });
 
+const userStore = useUserStore();
+
 const handleEditConfirm = async () => {
   if (!curEditItem.value) return;
-  const res = await editUserPass(curEditItem.value.id, md5(editForm.password));
+  const res = await editUserPass(curEditItem.value.id, md5(editForm.old), md5(editForm.password));
   if (res.code === 200) {
     editForm = reactive({
       username: "",
+      old: "",
       password: ""
     });
     dialogEditVisible.value = false;
     refreshTable();
+    setTimeout(() => {
+      // 2.清除 Token
+      userStore.setToken("");
+
+      // 3.重定向到登陆页
+      router.replace(LOGIN_URL);
+      ElMessage.success("退出登录！");
+    });
   }
 };
 </script>
