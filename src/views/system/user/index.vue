@@ -7,12 +7,13 @@
     <el-table class="table" :data="userList" style="width: 100%">
       <el-table-column prop="id" label="Id" width="120" />
       <el-table-column prop="username" label="用户名" />
-      <el-table-column prop="createdAt" label="创建时间" width="600" :formatter="formatter" />
-      <!-- <el-table-column fixed="right" label="Operations" min-width="120">
-        <template #default>
-          <el-button link type="primary" size="small">Edit</el-button>
+      <el-table-column prop="createdAt" label="创建时间" width="200" :formatter="formatter" />
+      <el-table-column fixed="right" label="操作" min-width="120">
+        <template #default="scoped">
+          <el-button link type="primary" size="small" color="#409EFF" @click="handleEditPass(scoped.row)">修改密码</el-button>
+          <el-button link type="danger" size="small" @click="handleDelUser(scoped.row.id)">删除</el-button>
         </template>
-      </el-table-column> -->
+      </el-table-column>
     </el-table>
 
     <el-dialog v-model="dialogVisible" title="添加用户" width="500">
@@ -31,12 +32,28 @@
         </div>
       </template>
     </el-dialog>
+    <el-dialog v-model="dialogEditVisible" title="修改密码" width="500">
+      <el-form :model="editForm" label-width="auto" style="max-width: 600px">
+        <el-form-item label="用户名">
+          <el-input v-model="editForm.username" disabled />
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="editForm.password" type="password" show-password />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogEditVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleEditConfirm"> 确认 </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts" name="user">
 import { User } from "@/api/interface/system";
-import { addUser, getUserList } from "@/api/modules/system";
+import { addUser, deleteUser, getUserList, editUserPass } from "@/api/modules/system";
 import { onBeforeMount, reactive, ref } from "vue";
 import dayjs from "dayjs";
 import { Plus } from "@element-plus/icons-vue";
@@ -52,6 +69,20 @@ const formatter = (row: User.Entity) => {
   return dayjs(row.createdAt).format("YYYY-MM-DD HH:mm:ss");
 };
 
+async function handleDelUser(id: number) {
+  await deleteUser({
+    id
+  });
+  refreshTable();
+}
+
+const curEditItem = ref<User.Entity>();
+function handleEditPass(row: User.Entity) {
+  dialogEditVisible.value = true;
+  curEditItem.value = row;
+  editForm.username = row.username;
+}
+
 async function refreshTable() {
   const res = await getUserList();
   userList.value = res.data;
@@ -63,7 +94,7 @@ onBeforeMount(() => {
 
 const dialogVisible = ref(false);
 
-const form = reactive({
+let form = reactive({
   username: "",
   password: ""
 });
@@ -75,7 +106,31 @@ const handleConfirm = async () => {
   };
   const res = await addUser(clone);
   if (res.code === 200) {
+    form = reactive({
+      username: "",
+      password: ""
+    });
     dialogVisible.value = false;
+    refreshTable();
+  }
+};
+
+const dialogEditVisible = ref(false);
+
+let editForm = reactive({
+  username: "",
+  password: ""
+});
+
+const handleEditConfirm = async () => {
+  if (!curEditItem.value) return;
+  const res = await editUserPass(curEditItem.value.id, md5(editForm.password));
+  if (res.code === 200) {
+    editForm = reactive({
+      username: "",
+      password: ""
+    });
+    dialogEditVisible.value = false;
     refreshTable();
   }
 };

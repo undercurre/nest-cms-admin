@@ -26,13 +26,13 @@ export const BatchAddUser = (params: FormData) => {
 };
 
 // 编辑用户
-export const editUser = (params: { id: string }) => {
-  return http.post(PORT1 + `/user/edit`, params);
+export const editUser = (params: { id: number }) => {
+  return http.patch(PORT1 + `/users/${params.id}`);
 };
 
 // 删除用户
-export const deleteUser = (params: { id: string[] }) => {
-  return http.post(PORT1 + `/user/delete`, params);
+export const deleteUser = (params: { id: number }) => {
+  return http.delete(PORT1 + `/users/${params.id}`);
 };
 
 // 切换用户状态

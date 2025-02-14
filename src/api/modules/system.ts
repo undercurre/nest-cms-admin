@@ -15,3 +15,13 @@ export const getUserList = () => {
 export const addUser = (params: User.RegisterUserParams) => {
   return http.post<User.Entity>(PORT1 + `/users/register`, params, { loading: true });
 };
+
+// 编辑用户
+export const editUserPass = (id: number, pass: string) => {
+  return http.patch(PORT1 + `/users/${id}`, { password: pass });
+};
+
+// 删除用户
+export const deleteUser = (params: { id: number }) => {
+  return http.delete(PORT1 + `/users/${params.id}`);
+};
