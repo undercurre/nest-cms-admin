@@ -19,12 +19,17 @@ export namespace Consumable {
 
 export namespace Product {
   export interface Entity {
+    createTime: string;
+    createUid: string;
+    description: string;
     id: number;
-    model: string;
-    name: string;
-    sellingPoints: string;
-    imageUrl: string;
+    imageOssUrl: string;
     manualOssUrl: string;
+    productModel: string;
+    productName: string;
+    sku: string;
+    updateTime: string;
+    updateUid: string | null;
   }
 
   export interface CreateParams {

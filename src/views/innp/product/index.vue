@@ -7,14 +7,14 @@
     </div>
     <el-table class="table" :data="productList" style="width: 100%">
       <el-table-column prop="id" label="Id" width="50" align="center" />
-      <el-table-column prop="model" label="型号" align="center" />
-      <el-table-column prop="name" label="名称" align="center" />
-      <el-table-column prop="imageUrl" label="图片" align="center">
+      <el-table-column prop="productModel" label="型号" align="center" />
+      <el-table-column prop="productName" label="名称" align="center" />
+      <el-table-column prop="imageOssUrl" label="图片" align="center">
         <template #default="scoped">
-          <img class="product_img_preview" :src="scoped.row.imageUrl" />
+          <img class="product_img_preview" :src="scoped.row.imageOssUrl" />
         </template>
       </el-table-column>
-      <el-table-column prop="sellingPoints" label="卖点" align="center" />
+      <el-table-column prop="description" label="卖点" align="center" />
       <el-table-column fixed="right" label="操作" align="center">
         <template #default="scoped">
           <div class="btns">
@@ -36,10 +36,10 @@
     <el-dialog v-model="dialogVisible" :title="dialogActionType === 'add' ? '添加产品' : '修改产品'" width="500">
       <el-form :model="form" label-width="auto" style="max-width: 600px">
         <el-form-item label="产品型号">
-          <el-input v-model="form.model" />
+          <el-input v-model="form.productModel" />
         </el-form-item>
         <el-form-item label="产品名称">
-          <el-input v-model="form.name" />
+          <el-input v-model="form.productName" />
         </el-form-item>
         <el-form-item label="产品图片">
           <el-upload
@@ -63,7 +63,7 @@
           </el-upload>
         </el-form-item>
         <el-form-item label="产品卖点">
-          <el-input v-model="form.sellingPoints" />
+          <el-input v-model="form.description" />
         </el-form-item>
         <el-form-item label="产品说明书">
           <el-upload
@@ -131,6 +131,7 @@ const productList = ref<Array<Product.Entity>>();
 
 async function refreshTable() {
   const res = await getProductList();
+  console.log(res);
   productList.value = res.data;
 }
 
@@ -141,20 +142,22 @@ onBeforeMount(() => {
 const dialogActionType = ref<"add" | "edit">("add");
 const dialogVisible = ref(false);
 
-let form = reactive({
-  model: "",
-  name: "",
-  imageUrl: "",
-  sellingPoints: "",
+type ProductForm = Omit<Product.Entity, "createTime" | "createUid" | "sku" | "updateTime" | "updateUid" | "id">;
+
+let form = reactive<ProductForm>({
+  productModel: "",
+  productName: "",
+  imageOssUrl: "",
+  description: "",
   manualOssUrl: ""
 });
 
 const resetForm = () => {
   form = reactive({
-    model: "",
-    name: "",
-    imageUrl: "",
-    sellingPoints: "",
+    productModel: "",
+    productName: "",
+    imageOssUrl: "",
+    description: "",
     manualOssUrl: ""
   });
 };
@@ -225,10 +228,10 @@ const handleManualSuccess = (response: any, uploadFile: UploadFile, uploadFiles:
 
 const submitForm = async () => {
   const clone = {
-    model: form.model,
-    name: form.name,
-    imageUrl: form.imageUrl,
-    sellingPoints: form.sellingPoints,
+    model: form.productModel,
+    name: form.productName,
+    imageUrl: form.imageOssUrl,
+    sellingPoints: form.description,
     manualOssUrl: form.manualOssUrl
   };
   let resCode: string | number = 0;
@@ -272,7 +275,7 @@ const handleConfirm = async () => {
     success_action_status: "200"
   };
 
-  form.imageUrl = imgAction.value + "/" + imgUrlKey;
+  form.imageOssUrl = imgAction.value + "/" + imgUrlKey;
 
   extraManualData.value = {
     key: manualUrlKey,
@@ -308,7 +311,7 @@ const watchQrCode = async (e: Product.Entity) => {
     console.log(canvas);
     QRCode.toCanvas(
       canvas,
-      `${import.meta.env.VITE_API_URL}markH5/product/${watchQrCodeItem.value?.id}`,
+      `http://172.27.64.65:5173/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
       { width: 200 },
       error => {
         if (error) console.error(error);
@@ -322,7 +325,7 @@ function downloadQrCode() {
   const url = (canvas as HTMLCanvasElement).toDataURL(); // 转换为 Base64 URL
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${watchQrCodeItem.value?.name}二维码.png`;
+  link.download = `${watchQrCodeItem.value?.productName}二维码.png`;
   link.click();
 }
 
@@ -335,8 +338,8 @@ async function handleEditStart(row: Product.Entity) {
   dialogActionType.value = "edit";
   const fakerImgRawFile: UploadUserFile = {
     // 从 url decodeURIComponent 解码成中文
-    name: getFileNameFromUrl(decodeURIComponent(row.imageUrl)) || "image.jpg",
-    url: row.imageUrl
+    name: getFileNameFromUrl(decodeURIComponent(row.imageOssUrl)) || "image.jpg",
+    url: row.imageOssUrl
   };
   const fakerManualRawFile: UploadUserFile = {
     // 从 url decodeURIComponent 解码成中文

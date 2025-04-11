@@ -1,5 +1,5 @@
 import { Consumable, Diet, Guide, Ingredients, OSS, Product, Steps } from "@/api/interface/innp";
-import { PORT1 } from "@/api/config/servicePort";
+import { PORT1, PORT3 } from "@/api/config/servicePort";
 import http from "@/api";
 
 /**
@@ -20,29 +20,35 @@ export const addConsumable = (params: Consumable.CreateParams) => {
  * @name 查询产品列表
  */
 export const getProductList = () => {
-  return http.get<Array<Product.Entity>>(PORT1 + `/products`, {}, { loading: true });
+  return http.post<Array<Product.Entity>>(
+    PORT3 + "/products/page",
+    {
+      pageIndex: 1,
+      pageSize: 99999
+    },
+    { loading: true }
+  );
 };
 
 /**
  * @name 创建产品
  */
 export const addProduct = (params: Product.CreateParams) => {
-  return http.post<Product.Entity>(PORT1 + `/products`, params, { loading: true });
+  return http.post<Product.Entity>(PORT3 + `/products`, params, { loading: true });
 };
 
 /**
  * @name 修改产品
  */
 export const updateProduct = (params: Product.UpdateParams) => {
-  const { id, ...others } = params;
-  return http.patch<Product.Entity>(PORT1 + `/products/${id}`, others, { loading: true });
+  return http.put<Product.Entity>(PORT3 + `/products`, params, { loading: true });
 };
 
 /**
  * @name 删除产品
  */
 export const delProduct = (params: Product.DelParams) => {
-  return http.delete<Product.Entity>(PORT1 + `/products/${params.id}`, params, { loading: true });
+  return http.delete<Product.Entity>(PORT3 + `/products/${params.id}`, params, { loading: true });
 };
 
 /**
