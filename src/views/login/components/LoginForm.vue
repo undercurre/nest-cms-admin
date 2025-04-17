@@ -42,6 +42,8 @@ import type { ElForm } from "element-plus";
 import { getTimeState } from "@/utils";
 import { loginApi } from "@/api/modules/login";
 import md5 from "md5";
+// import { loginApi } from "@/api/modules/login";
+// import md5 from "md5";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -56,7 +58,7 @@ const loginRules = reactive({
 });
 
 const loading = ref(false);
-const loginForm = reactive<Login.ReqLoginForm>({
+const loginForm = reactive<Login.LocalLoginForm>({
   username: "",
   password: ""
 });
@@ -69,10 +71,10 @@ const login = (formEl: FormInstance | undefined) => {
     loading.value = true;
     try {
       // 1.执行登录接口
-      const { data } = await loginApi({ ...loginForm, password: md5(loginForm.password) });
-
-      userStore.setToken(data.password);
-      userStore.userInfo.name = data.username;
+      const { data } = await loginApi({ accountName: loginForm.username, password: md5(loginForm.password) });
+      console.log(data);
+      userStore.setToken(data.token);
+      userStore.userInfo.name = loginForm.username;
       // 2.添加动态路由
       await initDynamicRouter();
 

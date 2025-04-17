@@ -32,22 +32,20 @@ export namespace Upload {
 
 // 登录模块
 export namespace Login {
-  export interface ReqLoginForm {
+  export interface LocalLoginForm {
     username: string;
     password: string;
   }
+
+  export interface ReqApiLoginForm {
+    accountName: string;
+    password: string;
+  }
+
   export interface ResLogin {
     // access_token: string;
-
-    id: number;
-    username: string;
-    password: string;
-    thirdPartyId: null | string;
-    isActive: boolean;
-    email: null | string;
-    role: "admin" | "user";
-    createdAt: string;
-    updatedAt: string;
+    userId: number;
+    token: string;
   }
   export interface ResAuthButtons {
     [key: string]: string[];
