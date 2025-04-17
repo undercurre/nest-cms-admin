@@ -11,7 +11,7 @@
       <el-table-column prop="productName" label="名称" align="center" />
       <el-table-column prop="imageOssUrl" label="图片" align="center">
         <template #default="scoped">
-          <img class="product_img_preview" :src="scoped.row.imageOssUrl" />
+          <img class="product_img_preview" :src="getUrlConcat(scoped.row.imageOssUrl)" />
         </template>
       </el-table-column>
       <el-table-column prop="description" label="卖点" align="center" />
@@ -21,7 +21,9 @@
             <el-button class="watch_qrcode" link type="primary" size="small" @click="watchQrCode(scoped.row)"
               >查看二维码</el-button
             >
-            <el-button link><el-link :href="scoped.row.manualOssUrl" target="_blank" underline>下载说明书</el-link></el-button>
+            <el-button link
+              ><el-link :href="getUrlConcat(scoped.row.manualOssUrl)" target="_blank" underline>下载说明书</el-link></el-button
+            >
             <el-button color="#409EFF" plain link @click="handleEditStart(scoped.row)">修改</el-button>
             <el-popconfirm title="确认要删除这一项吗？" confirm-button-type="danger" @confirm="handleDel(scoped.row.id)">
               <template #reference>
@@ -44,11 +46,11 @@
         <el-form-item label="产品图片">
           <el-upload
             :action="imgAction"
-            :file-list="uploadImgFileList"
             ref="uploadImg"
             list-type="picture-card"
-            :auto-upload="false"
             :limit="1"
+            :file-list="uploadImgFileList"
+            :auto-upload="false"
             :data="extraImgData"
             :on-change="handleImgChange"
             :on-success="handleImgSuccess"
@@ -107,9 +109,10 @@
 
 <script setup lang="ts" name="user">
 import { Product } from "@/api/interface/innp";
-import { onBeforeMount, reactive, ref, toRaw } from "vue";
+import { onBeforeMount, reactive, ref } from "vue";
 import { Plus } from "@element-plus/icons-vue";
-import { getProductList, addProduct, getOSSSignature, delProduct, updateProduct } from "@/api/modules/innp";
+
+import { getProductList, addProduct, delProduct, updateProduct, uploadAvatar } from "@/api/modules/innp";
 import QRCode from "qrcode";
 import {
   ElMessage,
@@ -165,7 +168,6 @@ const resetForm = () => {
 const uploadImg = ref<UploadInstance>();
 const uploadImgFileList = ref<UploadUserFile[]>([]);
 const uploadImgSuccessMark = ref(false);
-const uploadRawFileImg = ref<File>();
 const imgAction = ref("#");
 const extraImgData = ref<{
   key: string;
@@ -180,10 +182,49 @@ const handleImgExceed: UploadProps["onExceed"] = files => {
   file.uid = genFileId();
   uploadImg.value!.handleStart(file);
 };
-
-const handleImgChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => {
-  console.log("uploadImg", uploadFile, uploadFiles);
-  uploadRawFileImg.value = toRaw(uploadFile.raw);
+// url加http前缀
+const getUrlConcat = (url: string) => {
+  if (url.startsWith("http")) return url;
+  return `${window.location.protocol}//${url}`;
+};
+// 上传图片接口对接
+const handleImgChange = (file: UploadFile, fileList: UploadFiles) => {
+  console.log("uploadImg", fileList, file);
+  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file.raw.type);
+  const isLt5M = file.size / 1024 / 1024 < 5;
+  if (!isImg) {
+    uploadImgFileList.value = [];
+    return ElMessage.error("文件只能是.jpg, .jpeg, .png格式!");
+  }
+  if (!isLt5M) {
+    uploadImgFileList.value = [];
+    return ElMessage.error("文件大小不能超过 5MB!");
+  }
+  getBase64(file.raw).then(res => {
+    uploadAvatar({
+      contentType: file.raw.type,
+      base64: res
+    }).then(ret => {
+      form.imageOssUrl = ret?.data?.url;
+    });
+  });
+};
+// 获取图片转base64
+const getBase64 = file => {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    let imgResult = "";
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+      imgResult = reader.result;
+    };
+    reader.onerror = function (error) {
+      reject(error);
+    };
+    reader.onloadend = function () {
+      resolve(imgResult);
+    };
+  });
 };
 
 const handleImgSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
@@ -197,7 +238,6 @@ const handleImgSuccess = (response: any, uploadFile: UploadFile, uploadFiles: Up
 const uploadManual = ref<UploadInstance>();
 const uploadManualFileList = ref<UploadUserFile[]>([]);
 const uploadManualSuccessMark = ref(false);
-const uploadRawFileManual = ref<File>();
 const manualAction = ref("#");
 const extraManualData = ref<{
   key: string;
@@ -213,9 +253,26 @@ const handleManualExceed: UploadProps["onExceed"] = files => {
   uploadManual.value!.handleStart(file);
 };
 
-const handleManualChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => {
-  console.log("uploadManual", uploadFile, uploadFiles);
-  uploadRawFileManual.value = toRaw(uploadFile.raw);
+const handleManualChange = (file: UploadFile, fileList: UploadFiles) => {
+  console.log(fileList);
+  const isPdf = ["application/pdf"].includes(file.raw.type);
+  const isLt5M = file.size / 1024 / 1024 < 5;
+  if (!isPdf) {
+    uploadManualFileList.value = [];
+    return ElMessage.error("文件只能是.pdf格式!");
+  }
+  if (!isLt5M) {
+    uploadManualFileList.value = [];
+    return ElMessage.error("文件大小不能超过 5MB!");
+  }
+  getBase64(file.raw).then(res => {
+    uploadAvatar({
+      contentType: file.raw.type,
+      base64: res
+    }).then(ret => {
+      form.manualOssUrl = ret?.data?.url;
+    });
+  });
 };
 
 const handleManualSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
@@ -230,24 +287,24 @@ const submitForm = async () => {
   const clone = {
     model: form.productModel,
     name: form.productName,
-    imageUrl: form.imageOssUrl,
+    imageOssUrl: form.imageOssUrl,
     sellingPoints: form.description,
     manualOssUrl: form.manualOssUrl
   };
-  let resCode: string | number = 0;
+  let resSuccess: boolean = false;
   let resMsg: string = "";
   if (dialogActionType.value === "add") {
     const res = await addProduct(clone);
-    resCode = res.code;
+    resSuccess = res.success;
     resMsg = res.msg;
   } else {
     if (!curEditItem.value) return;
     const res = await updateProduct({ ...clone, id: curEditItem.value.id });
-    resCode = res.code;
+    resSuccess = res.success;
     resMsg = res.msg;
   }
 
-  if (resCode === 200) {
+  if (resSuccess) {
     dialogVisible.value = false;
     refreshTable();
     resetForm();
@@ -257,48 +314,10 @@ const submitForm = async () => {
 };
 
 const handleConfirm = async () => {
-  const signatureImgRes = await getOSSSignature({ fileType: "image" });
-  console.log(signatureImgRes);
-  const signatureManualRes = await getOSSSignature({ fileType: "pdf" });
-  console.log(signatureManualRes);
-  imgAction.value = signatureImgRes.data.host;
-  manualAction.value = signatureManualRes.data.host;
-
-  const imgUrlKey = generateFileName(signatureImgRes.data, uploadRawFileImg.value);
-  const manualUrlKey = generateFileName(signatureManualRes.data, uploadRawFileManual.value);
-
-  extraImgData.value = {
-    key: imgUrlKey,
-    OSSAccessKeyId: signatureImgRes.data.accessId,
-    policy: signatureImgRes.data.policy,
-    signature: signatureImgRes.data.signature,
-    success_action_status: "200"
-  };
-
-  form.imageOssUrl = imgAction.value + "/" + imgUrlKey;
-
-  extraManualData.value = {
-    key: manualUrlKey,
-    OSSAccessKeyId: signatureManualRes.data.accessId,
-    policy: signatureManualRes.data.policy,
-    signature: signatureManualRes.data.signature,
-    success_action_status: "200"
-  };
-
-  form.manualOssUrl = manualAction.value + "/" + manualUrlKey;
-  console.log("key", imgUrlKey, manualUrlKey);
-  // 先上传两份文件
-  uploadImg.value!.submit();
-  uploadManual.value!.submit();
+  submitForm();
 };
 
 // 生成文件名，作为 key 使用
-const generateFileName = (ossData, file) => {
-  console.log(file, file.name);
-  const suffix = file.name.slice(file.name.lastIndexOf("."));
-  const filename = Date.now() + suffix;
-  return ossData.dir + filename;
-};
 
 let canvas = document.getElementById("qrcode");
 const watchQrCodeItem = ref<Product.Entity>();
@@ -311,7 +330,7 @@ const watchQrCode = async (e: Product.Entity) => {
     console.log(canvas);
     QRCode.toCanvas(
       canvas,
-      `http://192.168.137.88:5173/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
+      `http://192.168.137.181:5175/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
       { width: 200 },
       error => {
         if (error) console.error(error);
@@ -339,12 +358,12 @@ async function handleEditStart(row: Product.Entity) {
   const fakerImgRawFile: UploadUserFile = {
     // 从 url decodeURIComponent 解码成中文
     name: getFileNameFromUrl(decodeURIComponent(row.imageOssUrl)) || "image.jpg",
-    url: row.imageOssUrl
+    url: getUrlConcat(row.imageOssUrl)
   };
   const fakerManualRawFile: UploadUserFile = {
     // 从 url decodeURIComponent 解码成中文
     name: getFileNameFromUrl(decodeURIComponent(row.manualOssUrl)) || "manual.pdf",
-    url: row.manualOssUrl
+    url: getUrlConcat(row.manualOssUrl)
   };
   uploadImgFileList.value = [fakerImgRawFile];
   uploadManualFileList.value = [fakerManualRawFile];

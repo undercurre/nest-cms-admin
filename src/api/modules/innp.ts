@@ -1,5 +1,5 @@
 import { Consumable, Diet, Guide, Ingredients, OSS, Product, Steps } from "@/api/interface/innp";
-import { PORT1, PORT3 } from "@/api/config/servicePort";
+import { PORT1, PORT3, PORT5 } from "@/api/config/servicePort";
 import http from "@/api";
 
 /**
@@ -56,6 +56,15 @@ export const delProduct = (params: Product.DelParams) => {
  */
 export const getOSSSignature = (params: OSS.GetOSSSignatureParams) => {
   return http.post<OSS.Signature>(PORT1 + `/oss/signature`, params, { loading: true });
+};
+
+/**
+ * @name 图片上传接口
+ */
+export const uploadAvatar = (params: OSS.UploadParams) => {
+  return http.post<string>(PORT5 + `/aliOssFile/avatarUpload`, params, {
+    loading: true
+  });
 };
 
 /**

@@ -59,6 +59,11 @@ export namespace OSS {
     dir: string;
   }
 
+  export interface UploadParams {
+    contentType: "image/jpg" | "image/jpeg" | "image/png" | "application/pdf";
+    base64: string;
+  }
+
   export interface GetOSSSignatureParams {
     fileType: "image" | "pdf" | "mp4";
   }
