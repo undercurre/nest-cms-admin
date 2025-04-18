@@ -59,9 +59,16 @@ export namespace OSS {
     dir: string;
   }
 
+  export interface SignatureUploadParams {
+    key: string;
+    OSSAccessKeyId: string;
+    policy: string;
+    signature: string;
+    success_action_status: string;
+  }
   export interface UploadParams {
     contentType: "image/jpg" | "image/jpeg" | "image/png" | "application/pdf";
-    base64: string;
+    base64?: string;
   }
 
   export interface GetOSSSignatureParams {

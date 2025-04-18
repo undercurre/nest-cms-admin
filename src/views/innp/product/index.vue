@@ -9,7 +9,7 @@
       <el-table-column prop="id" label="Id" width="50" align="center" />
       <el-table-column prop="productModel" label="型号" align="center" />
       <el-table-column prop="productName" label="名称" align="center" />
-      <el-table-column prop="imageOssUrl" label="图片" align="center">
+      <el-table-column prop="imageOssUrl" label="图片" align="center" width="200">
         <template #default="scoped">
           <img class="product_img_preview" :src="getUrlConcat(scoped.row.imageOssUrl)" />
         </template>
@@ -89,7 +89,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleConfirm"> 确认 </el-button>
+          <el-button type="primary" @click="handleConfirm" :disabled="uploadLoading"> 确认 </el-button>
         </div>
       </template>
     </el-dialog>
@@ -112,7 +112,7 @@ import { Product } from "@/api/interface/innp";
 import { onBeforeMount, reactive, ref } from "vue";
 import { Plus } from "@element-plus/icons-vue";
 
-import { getProductList, addProduct, delProduct, updateProduct, uploadAvatar } from "@/api/modules/innp";
+import { getProductList, addProduct, delProduct, updateProduct, uploadAvatar, getOSSSignature } from "@/api/modules/innp";
 import QRCode from "qrcode";
 import {
   ElMessage,
@@ -252,11 +252,11 @@ const handleManualExceed: UploadProps["onExceed"] = files => {
   file.uid = genFileId();
   uploadManual.value!.handleStart(file);
 };
-
-const handleManualChange = (file: UploadFile, fileList: UploadFiles) => {
-  console.log(fileList);
-  const isPdf = ["application/pdf"].includes(file.raw.type);
-  const isLt5M = file.size / 1024 / 1024 < 5;
+// 上传loading
+const uploadLoading = ref(false);
+const handleManualChange = async (uploadFile: UploadFile) => {
+  const isPdf = ["application/pdf"].includes(uploadFile.raw.type);
+  const isLt5M = uploadFile.size / 1024 / 1024 < 5;
   if (!isPdf) {
     uploadManualFileList.value = [];
     return ElMessage.error("文件只能是.pdf格式!");
@@ -265,16 +265,27 @@ const handleManualChange = (file: UploadFile, fileList: UploadFiles) => {
     uploadManualFileList.value = [];
     return ElMessage.error("文件大小不能超过 5MB!");
   }
-  getBase64(file.raw).then(res => {
-    uploadAvatar({
-      contentType: file.raw.type,
-      base64: res
-    }).then(ret => {
-      form.manualOssUrl = ret?.data?.url;
-    });
+  const signatureManualRes = await getOSSSignature({
+    headerContentType: uploadFile.raw.type,
+    fileType: uploadFile.raw.type?.split("/")?.[1]
   });
+  uploadLoading.value = true;
+  try {
+    ElMessage.info("文件上传中，请稍等...");
+    const res = await fetch(signatureManualRes.data.url, {
+      method: "PUT",
+      body: uploadFile.raw
+    });
+    uploadLoading.value = false;
+    form.manualOssUrl = signatureManualRes.data.url?.split("?")?.[0];
+    if (res.status === 200) {
+      ElMessage.success("文件上传成功");
+    }
+  } catch (error) {
+    uploadLoading.value = false;
+    ElMessage.error("文件上传失败");
+  }
 };
-
 const handleManualSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
   console.log("manualSuccess", response, uploadFile, uploadFiles);
   uploadManualSuccessMark.value = true;

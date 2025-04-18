@@ -9,7 +9,7 @@
       <el-table-column prop="name" label="名称" align="center" />
       <el-table-column prop="image" label="图片" align="center">
         <template #default="scoped">
-          <img class="product_img_preview" :src="scoped.row.image" />
+          <img class="product_img_preview" :src="getUrlConcat(scoped.row.image)" />
         </template>
       </el-table-column>
       <el-table-column prop="description" label="描述" align="center" />
@@ -190,9 +190,9 @@
 
 <script setup lang="ts" name="user">
 import { Diet, Ingredients } from "@/api/interface/innp";
-import { onBeforeMount, reactive, ref, toRaw } from "vue";
+import { onBeforeMount, reactive, ref } from "vue";
 import { Plus } from "@element-plus/icons-vue";
-import { getDietList, addDiet, getOSSSignature, delDiet, updateDiet, getCategoryList, getTasteList } from "@/api/modules/innp";
+import { getDietList, addDiet, delDiet, updateDiet, getCategoryList, getTasteList, uploadAvatar } from "@/api/modules/innp";
 import {
   ElMessage,
   genFileId,
@@ -287,7 +287,6 @@ const resetForm = () => {
 
 const uploadImage = ref<UploadInstance>();
 const uploadImageFileList = ref<UploadUserFile[]>([]);
-const uploadRawFileImage = ref<File>();
 const imageAction = ref("#");
 const extraImageData = ref<{
   key: string;
@@ -303,9 +302,48 @@ const handleImageExceed: UploadProps["onExceed"] = files => {
   uploadImage.value!.handleStart(file);
 };
 
-const handleImageChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => {
-  console.log("uploadImage", uploadFile, uploadFiles);
-  uploadRawFileImage.value = toRaw(uploadFile.raw);
+// url加http前缀
+const getUrlConcat = (url: string) => {
+  if (url.startsWith("http")) return url;
+  return `${window.location.protocol}//${url}`;
+};
+const handleImageChange = (file: UploadFile, fileList: UploadFiles) => {
+  console.log("uploadImg", fileList, file);
+  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file.raw.type);
+  const isLt5M = file.size / 1024 / 1024 < 5;
+  if (!isImg) {
+    uploadImageFileList.value = [];
+    return ElMessage.error("文件只能是.jpg, .jpeg, .png格式!");
+  }
+  if (!isLt5M) {
+    uploadImageFileList.value = [];
+    return ElMessage.error("文件大小不能超过 5MB!");
+  }
+  getBase64(file.raw).then(res => {
+    uploadAvatar({
+      contentType: file.raw.type,
+      base64: res
+    }).then(ret => {
+      form.image = ret?.data?.url;
+    });
+  });
+};
+// 获取图片转base64
+const getBase64 = file => {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    let imgResult = "";
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+      imgResult = reader.result;
+    };
+    reader.onerror = function (error) {
+      reject(error);
+    };
+    reader.onloadend = function () {
+      resolve(imgResult);
+    };
+  });
 };
 
 const handleImageSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
@@ -354,38 +392,31 @@ const submitForm = async () => {
 };
 
 const handleConfirm = async () => {
-  if (!uploadRawFileImage.value) {
-    submitForm();
-    return;
-  }
-  const signatureImageRes = await getOSSSignature({ fileType: "image" });
-  console.log(signatureImageRes);
+  submitForm();
+  // if (!uploadRawFileImage.value) {
+  //   submitForm();
+  //   return;
+  // }
+  // const signatureImageRes = await getOSSSignature({ fileType: "image" });
+  // console.log(signatureImageRes);
 
-  imageAction.value = signatureImageRes.data.host;
+  // imageAction.value = signatureImageRes.data.host;
 
-  const imageUrlKey = generateFileName(signatureImageRes.data, uploadRawFileImage.value);
+  // const imageUrlKey = generateFileName(signatureImageRes.data, uploadRawFileImage.value);
 
-  extraImageData.value = {
-    key: imageUrlKey,
-    OSSAccessKeyId: signatureImageRes.data.accessId,
-    policy: signatureImageRes.data.policy,
-    signature: signatureImageRes.data.signature,
-    success_action_status: "200"
-  };
+  // extraImageData.value = {
+  //   key: imageUrlKey,
+  //   OSSAccessKeyId: signatureImageRes.data.accessId,
+  //   policy: signatureImageRes.data.policy,
+  //   signature: signatureImageRes.data.signature,
+  //   success_action_status: "200"
+  // };
 
-  form.image = imageAction.value + "/" + imageUrlKey;
+  // form.image = imageAction.value + "/" + imageUrlKey;
 
-  console.log("key", imageUrlKey);
+  // console.log("key", imageUrlKey);
 
-  uploadImage.value!.submit();
-};
-
-// 生成文件名，作为 key 使用
-const generateFileName = (ossData, file) => {
-  console.log(file, file.name);
-  const suffix = file.name.slice(file.name.lastIndexOf("."));
-  const filename = Date.now() + suffix;
-  return ossData.dir + filename;
+  // uploadImage.value!.submit();
 };
 
 const curEditItem = ref<Diet.Entity>();
@@ -398,7 +429,7 @@ async function handleEditStart(row: Diet.Entity) {
   const fakerImgRawFile: UploadUserFile = {
     // 从 url decodeURIComponent 解码成中文
     name: getFileNameFromUrl(decodeURIComponent(row.image)) || "image.png",
-    url: row.image
+    url: getUrlConcat(row.image)
   };
   uploadImageFileList.value = [fakerImgRawFile];
   dialogVisible.value = true;

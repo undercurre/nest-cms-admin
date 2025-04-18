@@ -81,7 +81,7 @@
         "icon": "Briefcase",
         "title": "系统管理",
         "isLink": "",
-        "isHide": false,
+        "isHide": true,
         "isFull": false,
         "isAffix": false,
         "isKeepAlive": true

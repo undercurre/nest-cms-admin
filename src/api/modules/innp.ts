@@ -26,7 +26,7 @@ export const getProductList = () => {
       pageIndex: 1,
       pageSize: 99999
     },
-    { loading: true }
+    { loading: false }
   );
 };
 
@@ -54,8 +54,8 @@ export const delProduct = (params: Product.DelParams) => {
 /**
  * @name 获取OSS签名
  */
-export const getOSSSignature = (params: OSS.GetOSSSignatureParams) => {
-  return http.post<OSS.Signature>(PORT1 + `/oss/signature`, params, { loading: true });
+export const getOSSSignature = (params: OSS.UploadParams) => {
+  return http.get<OSS.Signature>(PORT5 + `/aliOssFile/getSignUrl`, params);
 };
 
 /**
