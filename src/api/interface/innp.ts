@@ -36,7 +36,7 @@ export namespace Product {
     model: string;
     name: string;
     sellingPoints: string;
-    imageUrl: string;
+    imageOssUrl: string;
     manualOssUrl: string;
   }
 
@@ -67,8 +67,14 @@ export namespace OSS {
     success_action_status: string;
   }
   export interface UploadParams {
-    contentType: "image/jpg" | "image/jpeg" | "image/png" | "application/pdf";
+    headerContentType?: string;
+    fileType?: string;
+    contentType?: string;
     base64?: string;
+  }
+
+  export interface UploadRes {
+    url?: string;
   }
 
   export interface GetOSSSignatureParams {

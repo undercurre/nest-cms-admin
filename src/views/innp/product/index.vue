@@ -193,8 +193,8 @@ const getUrlConcat = (url: string) => {
 // 上传图片接口对接
 const handleImgChange = (file: UploadFile, fileList: UploadFiles) => {
   console.log("uploadImg", fileList, file);
-  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file.raw.type);
-  const isLt5M = file.size / 1024 / 1024 < 5;
+  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file?.raw?.type ?? "");
+  const isLt5M = (file.size ?? 0) / 1024 / 1024 < 5;
   if (!isImg) {
     uploadImgFileList.value = [];
     return ElMessage.error("文件只能是.jpg, .jpeg, .png格式!");
@@ -205,10 +205,10 @@ const handleImgChange = (file: UploadFile, fileList: UploadFiles) => {
   }
   getBase64(file.raw).then(res => {
     uploadAvatar({
-      contentType: file.raw.type,
-      base64: res
+      contentType: file?.raw?.type,
+      base64: res as string
     }).then(ret => {
-      form.imageOssUrl = ret?.data?.url;
+      form.imageOssUrl = ret?.data?.url ?? "";
     });
   });
 };
@@ -219,7 +219,7 @@ const getBase64 = file => {
     let imgResult = "";
     reader.readAsDataURL(file);
     reader.onload = function () {
-      imgResult = reader.result;
+      imgResult = reader.result as string;
     };
     reader.onerror = function (error) {
       reject(error);
@@ -258,8 +258,8 @@ const handleManualExceed: UploadProps["onExceed"] = files => {
 // 上传loading
 const uploadLoading = ref(false);
 const handleManualChange = async (uploadFile: UploadFile) => {
-  const isPdf = ["application/pdf"].includes(uploadFile.raw.type);
-  const isLt5M = uploadFile.size / 1024 / 1024 < 5;
+  const isPdf = ["application/pdf"].includes(uploadFile?.raw?.type ?? "");
+  const isLt5M = (uploadFile.size ?? 0) / 1024 / 1024 < 5;
   if (!isPdf) {
     uploadManualFileList.value = [];
     return ElMessage.error("文件只能是.pdf格式!");
@@ -269,18 +269,18 @@ const handleManualChange = async (uploadFile: UploadFile) => {
     return ElMessage.error("文件大小不能超过 5MB!");
   }
   const signatureManualRes = await getOSSSignature({
-    headerContentType: uploadFile.raw.type,
-    fileType: uploadFile.raw.type?.split("/")?.[1]
+    headerContentType: uploadFile?.raw?.type,
+    fileType: uploadFile?.raw?.type?.split("/")?.[1]
   });
   uploadLoading.value = true;
   try {
     ElMessage.info("文件上传中，请稍等...");
-    const res = await fetch(signatureManualRes.data.url, {
+    const res = await fetch(signatureManualRes.data.url ?? "", {
       method: "PUT",
       body: uploadFile.raw
     });
     uploadLoading.value = false;
-    form.manualOssUrl = signatureManualRes.data.url?.split("?")?.[0];
+    form.manualOssUrl = signatureManualRes?.data?.url?.split("?")?.[0] ?? "";
     if (res.status === 200) {
       ElMessage.success("文件上传成功");
     }
@@ -309,12 +309,12 @@ const submitForm = async () => {
   let resMsg: string = "";
   if (dialogActionType.value === "add") {
     const res = await addProduct(clone);
-    resSuccess = res.success;
+    resSuccess = res.success ?? false;
     resMsg = res.msg;
   } else {
     if (!curEditItem.value) return;
     const res = await updateProduct({ ...clone, id: curEditItem.value.id });
-    resSuccess = res.success;
+    resSuccess = res.success ?? false;
     resMsg = res.msg;
   }
 

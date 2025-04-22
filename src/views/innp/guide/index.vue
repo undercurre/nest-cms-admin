@@ -148,24 +148,24 @@ const getUrlConcat = (url: string) => {
 // 上传loading
 const uploadLoading = ref(false);
 const handleVideoChange = async (uploadFile: UploadFile) => {
-  const isVideo = ["video/mp4", "video/mov", "video/webm"].includes(uploadFile.raw.type);
+  const isVideo = ["video/mp4", "video/mov", "video/webm"].includes(uploadFile?.raw?.type ?? "");
   if (!isVideo) {
     uploadVideoFileList.value = [];
     return ElMessage.error("文件只能是.mp4、.mov或.webm格式!");
   }
   const signatureVideoRes = await getOSSSignature({
-    headerContentType: uploadFile.raw.type,
-    fileType: uploadFile.raw.type?.split("/")?.[1]
+    headerContentType: uploadFile?.raw?.type ?? "",
+    fileType: uploadFile?.raw?.type?.split("/")?.[1] ?? ""
   });
   uploadLoading.value = true;
   try {
     ElMessage.info("文件上传中，请稍等...");
-    const res = await fetch(signatureVideoRes.data.url, {
+    const res = await fetch(signatureVideoRes.data.url ?? "", {
       method: "PUT",
       body: uploadFile.raw
     });
     uploadLoading.value = false;
-    form.video = signatureVideoRes.data.url?.split("?")?.[0];
+    form.video = signatureVideoRes.data.url?.split("?")?.[0] ?? "";
     if (res.status === 200) {
       ElMessage.success("文件上传成功");
     }

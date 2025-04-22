@@ -312,8 +312,8 @@ const getUrlConcat = (url: string) => {
 };
 const handleImageChange = (file: UploadFile, fileList: UploadFiles) => {
   console.log("uploadImg", fileList, file);
-  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file.raw.type);
-  const isLt5M = file.size / 1024 / 1024 < 5;
+  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file?.raw?.type ?? "");
+  const isLt5M = (file?.size ?? 0) / 1024 / 1024 < 5;
   if (!isImg) {
     uploadImageFileList.value = [];
     return ElMessage.error("文件只能是.jpg, .jpeg, .png格式!");
@@ -324,10 +324,10 @@ const handleImageChange = (file: UploadFile, fileList: UploadFiles) => {
   }
   getBase64(file.raw).then(res => {
     uploadAvatar({
-      contentType: file.raw.type,
-      base64: res
+      contentType: file?.raw?.type,
+      base64: res as string
     }).then(ret => {
-      form.image = ret?.data?.url;
+      form.image = ret?.data?.url ?? "";
     });
   });
 };
@@ -338,7 +338,7 @@ const getBase64 = file => {
     let imgResult = "";
     reader.readAsDataURL(file);
     reader.onload = function () {
-      imgResult = reader.result;
+      imgResult = reader.result as string;
     };
     reader.onerror = function (error) {
       reject(error);

@@ -55,14 +55,14 @@ export const delProduct = (params: Product.DelParams) => {
  * @name 获取OSS签名
  */
 export const getOSSSignature = (params: OSS.UploadParams) => {
-  return http.get<OSS.Signature>(PORT5 + `/aliOssFile/getSignUrl`, params);
+  return http.get<OSS.UploadRes>(PORT5 + `/aliOssFile/getSignUrl`, params);
 };
 
 /**
  * @name 图片上传接口
  */
 export const uploadAvatar = (params: OSS.UploadParams) => {
-  return http.post<string>(PORT5 + `/aliOssFile/avatarUpload`, params, {
+  return http.post<OSS.UploadRes>(PORT5 + `/aliOssFile/avatarUpload`, params, {
     loading: true
   });
 };
