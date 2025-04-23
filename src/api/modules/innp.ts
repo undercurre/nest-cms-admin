@@ -21,7 +21,7 @@ export const addConsumable = (params: Consumable.CreateParams) => {
  */
 export const getProductList = () => {
   return http.post<Array<Product.Entity>>(
-    PORT3 + "/products/page",
+    PORT3 + "/h5/products/page",
     {
       pageIndex: 1,
       pageSize: 99999
