@@ -114,7 +114,7 @@ defineExpose({
 });
 </script>
 <template>
-  <el-dialog v-model="dialogVisible" :title="title" width="900" :close-on-click-modal="false">
+  <el-dialog v-model="dialogVisible" :title="title" width="90%" :close-on-click-modal="false">
     <el-space alignment="stretch">
       <el-button type="primary" :icon="Download" @click="exportTemplate">下载模板</el-button>
       <el-upload

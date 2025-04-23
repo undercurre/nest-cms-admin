@@ -5,6 +5,7 @@
     <div class="operations">
       <ExcelImport
         ref="importBtn"
+        title="导入产品"
         :column-config="columnConfig"
         template-url="产品配置-导入模板.xlsx"
         @save-in-bulk="saveInBulk"
@@ -138,10 +139,13 @@ import QRCode from "qrcode";
 import { onBeforeMount, reactive, ref } from "vue";
 
 const columnConfig = reactive([
-  { prop: "productModel", label: "型号" },
-  { prop: "productName", label: "名称" },
-  { prop: "imageOssUrl", label: "图片" },
-  { prop: "description", label: "卖点" }
+  { prop: "productModel", label: "产品型号" },
+  { prop: "productName", label: "产品名称" },
+  { prop: "productNameEn", label: "产品名称（英文）" },
+  { prop: "imageOssUrl", label: "产品图片" },
+  { prop: "description", label: "产品卖点" },
+  { prop: "descriptionEn", label: "产品卖点（英文）" },
+  { prop: "manualOssUrl", label: "产品说明书" }
 ]);
 const importBtn = ref<InstanceType<typeof ExcelImport>>();
 const saveInBulk = e => {

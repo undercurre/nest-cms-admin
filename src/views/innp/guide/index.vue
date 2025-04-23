@@ -5,6 +5,7 @@
     <div class="operations">
       <ExcelImport
         ref="importBtn"
+        title="导入指引"
         :column-config="columnConfig"
         template-url="指引配置-导入模板.xlsx"
         @save-in-bulk="saveInBulk"
@@ -13,7 +14,7 @@
     </div>
     <el-table class="table" :data="guideList" style="width: 100%">
       <el-table-column prop="id" label="Id" width="50" align="center" />
-      <el-table-column prop="title" label="名称" align="center" />
+      <el-table-column prop="title" label="标题" align="center" />
       <el-table-column prop="video" label="视频" align="center">
         <template #default="scoped">
           <video class="product_img_preview" :src="getUrlConcat(scoped.row.video)" />
@@ -96,9 +97,11 @@ import {
 import { nextTick, onBeforeMount, reactive, ref } from "vue";
 
 const columnConfig = reactive([
-  { prop: "title", label: "名称" },
+  { prop: "title", label: "标题" },
+  { prop: "title_en", label: "标题（英文）" },
   { prop: "video", label: "视频" },
-  { prop: "description", label: "描述" }
+  { prop: "description", label: "描述" },
+  { prop: "description_en", label: "描述（英文）" }
 ]);
 const importBtn = ref<InstanceType<typeof ExcelImport>>();
 const saveInBulk = e => {

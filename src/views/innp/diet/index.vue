@@ -3,6 +3,13 @@
   <div class="card container">
     <p class="title">食谱配置</p>
     <div class="operations">
+      <ExcelImport
+        ref="importBtn"
+        title="导入食谱"
+        :column-config="columnConfig"
+        template-url="指引配置-导入模板.xlsx"
+        @save-in-bulk="saveInBulk"
+      />
       <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
     </div>
     <el-table class="table" :data="dietList" style="width: 100%">
@@ -249,9 +256,9 @@
 
 <script setup lang="ts" name="user">
 import { Diet, Ingredients } from "@/api/interface/innp";
-import { onBeforeMount, reactive, ref } from "vue";
+import { addDiet, delDiet, getCategoryList, getDietList, getOSSSignature, getTasteList, updateDiet } from "@/api/modules/innp";
+import ExcelImport from "@/components/ExcelImport/index.vue";
 import { Plus } from "@element-plus/icons-vue";
-import { getDietList, addDiet, delDiet, updateDiet, getCategoryList, getTasteList, getOSSSignature } from "@/api/modules/innp";
 import {
   ElMessage,
   genFileId,
@@ -262,8 +269,100 @@ import {
   UploadRawFile,
   UploadUserFile
 } from "element-plus";
-import { nextTick } from "vue";
+import { nextTick, onBeforeMount, reactive, ref } from "vue";
 
+const columnConfig = reactive([
+  {
+    prop: "name",
+    label: "名称",
+    width: "120"
+  },
+  {
+    prop: "name_en",
+    label: "名称（英文）",
+    width: "120"
+  },
+  {
+    prop: "image",
+    label: "图片",
+    width: "120"
+  },
+  {
+    prop: "description",
+    label: "描述",
+    width: "120"
+  },
+  {
+    prop: "description_en",
+    label: "描述（英文）",
+    width: "120"
+  },
+  {
+    prop: "time",
+    label: "用时（min）",
+    width: "120"
+  },
+  {
+    prop: "difficulty",
+    label: "难度",
+    width: "120"
+  },
+  {
+    prop: "taste",
+    label: "口味",
+    width: "120"
+  },
+  {
+    prop: "category",
+    label: "品类",
+    width: "120"
+  },
+  {
+    prop: "nutrition_info_key",
+    label: "营养价值名称",
+    width: "120"
+  },
+  {
+    prop: "nutrition_info_value",
+    label: "营养价值含量",
+    width: "120"
+  },
+  {
+    prop: "ingredients_name",
+    label: "食材",
+    width: "120"
+  },
+  {
+    prop: "ingredients_name_en",
+    label: "食材（英文）",
+    width: "120"
+  },
+  {
+    prop: "ingredients_quantity",
+    label: "食材量",
+    width: "120"
+  },
+  {
+    prop: "ingredients_quantity_unit",
+    label: "食材单位",
+    width: "120"
+  },
+  {
+    prop: "steps_description",
+    label: "步骤",
+    width: "120"
+  },
+  {
+    prop: "steps_description_en",
+    label: "步骤（英文）",
+    width: "120"
+  }
+]);
+const importBtn = ref<InstanceType<typeof ExcelImport>>();
+const saveInBulk = e => {
+  console.log(e);
+  importBtn.value?.handleCancel();
+};
 const handleAddBtn = () => {
   resetForm();
   dialogVisible.value = true;
