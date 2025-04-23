@@ -3,6 +3,12 @@
   <div class="card container">
     <p class="title">指引配置</p>
     <div class="operations">
+      <ExcelImport
+        ref="importBtn"
+        :column-config="columnConfig"
+        template-url="指引配置-导入模板.xlsx"
+        @save-in-bulk="saveInBulk"
+      />
       <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
     </div>
     <el-table class="table" :data="guideList" style="width: 100%">
@@ -68,9 +74,9 @@
 <script setup lang="ts" name="user">
 // import axios from "axios";
 import { Guide } from "@/api/interface/innp";
-import { onBeforeMount, reactive, ref } from "vue";
+import { addGuide, delGuide, getGuideList, getOSSSignature, updateGuide } from "@/api/modules/innp";
+import ExcelImport from "@/components/ExcelImport/index.vue";
 import { Plus } from "@element-plus/icons-vue";
-import { getGuideList, addGuide, getOSSSignature, delGuide, updateGuide } from "@/api/modules/innp";
 import {
   ElMessage,
   genFileId,
@@ -81,8 +87,18 @@ import {
   UploadRawFile,
   UploadUserFile
 } from "element-plus";
-import { nextTick } from "vue";
+import { nextTick, onBeforeMount, reactive, ref } from "vue";
 
+const columnConfig = reactive([
+  { prop: "title", label: "名称" },
+  { prop: "video", label: "视频" },
+  { prop: "description", label: "描述" }
+]);
+const importBtn = ref<InstanceType<typeof ExcelImport>>();
+const saveInBulk = e => {
+  console.log(e);
+  importBtn.value?.handleCancel();
+};
 const handleAddBtn = () => {
   resetForm();
   dialogVisible.value = true;

@@ -97,3 +97,12 @@ export namespace User {
     children?: ResDepartment[];
   }
 }
+
+// 表头设置
+export namespace TableSetting {
+  export interface Columns {
+    prop: string;
+    label: string;
+    width?: string | number;
+  }
+}

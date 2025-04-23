@@ -1,5 +1,5 @@
-import { isArray } from "@/utils/is";
 import { FieldNamesProps } from "@/components/ProTable/interface";
+import { isArray } from "@/utils/is";
 
 const mode = import.meta.env.VITE_ROUTER_MODE;
 
@@ -308,4 +308,15 @@ export function findItemNested(enumData: any, callValue: any, value: string, chi
     if (current[value] === callValue) return current;
     if (current[children]) return findItemNested(current[children], callValue, value, children);
   }, null);
+}
+
+/**
+ * @description 数组转换为对象
+ * */
+export function convertArrayToObject(arr: { prop: string; label: string }[]) {
+  const result: { [key: string]: string } = {};
+  arr.forEach(item => {
+    result[item.label] = item.prop;
+  });
+  return result;
 }

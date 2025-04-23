@@ -3,6 +3,12 @@
   <div class="card container">
     <p class="title">产品配置</p>
     <div class="operations">
+      <ExcelImport
+        ref="importBtn"
+        :column-config="columnConfig"
+        template-url="产品配置-导入模板.xlsx"
+        @save-in-bulk="saveInBulk"
+      />
       <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
     </div>
     <el-table class="table" :data="productList" style="width: 100%">
@@ -109,11 +115,9 @@
 
 <script setup lang="ts" name="user">
 import { Product } from "@/api/interface/innp";
-import { onBeforeMount, reactive, ref } from "vue";
+import { addProduct, delProduct, getOSSSignature, getProductList, updateProduct } from "@/api/modules/innp";
+import ExcelImport from "@/components/ExcelImport/index.vue";
 import { Plus } from "@element-plus/icons-vue";
-
-import { getProductList, addProduct, delProduct, updateProduct, getOSSSignature } from "@/api/modules/innp";
-import QRCode from "qrcode";
 import {
   ElMessage,
   genFileId,
@@ -124,7 +128,20 @@ import {
   UploadRawFile,
   UploadUserFile
 } from "element-plus";
+import QRCode from "qrcode";
+import { onBeforeMount, reactive, ref } from "vue";
 
+const columnConfig = reactive([
+  { prop: "productModel", label: "型号" },
+  { prop: "productName", label: "名称" },
+  { prop: "imageOssUrl", label: "图片" },
+  { prop: "description", label: "卖点" }
+]);
+const importBtn = ref<InstanceType<typeof ExcelImport>>();
+const saveInBulk = e => {
+  console.log(e);
+  importBtn.value?.handleCancel();
+};
 const handleAddBtn = () => {
   dialogVisible.value = true;
   dialogActionType.value = "add";
