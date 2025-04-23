@@ -25,24 +25,27 @@
       </el-table-column>
       <el-table-column prop="taste" label="口味" align="center">
         <template #default="scoped">
-          <span>{{ scoped.row.taste }}</span>
+          <span>{{ $t(`cookbook.${scoped.row.taste}`) }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="category" label="品类" align="center">
         <template #default="scoped">
-          <span>{{ scoped.row.category }}</span>
+          <span>{{ $t(`cookbook.${scoped.row.category}`) }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="nutrition_info" label="营养价值" align="center">
         <template #default="scoped">
           <p v-for="item in Object.keys(scoped.row.nutrition_info)" :key="item">
-            {{ item }}:{{ scoped.row.nutrition_info[`${item}`] }}
+            {{ $t(`cookbook.${item}`) }}:{{ scoped.row.nutrition_info[`${item}`] }}
           </p>
         </template>
       </el-table-column>
       <el-table-column prop="ingredients" label="食材" align="center">
         <template #default="scoped">
-          <p v-for="item in scoped.row.ingredients" :key="item">{{ item.name }}:{{ item.quantity }}</p>
+          <p v-for="item in scoped.row.ingredients" :key="item">
+            {{ item.name }}:{{ item.quantity === "AppropriateAmount" ? $t(`cookbook.${item.quantity}`) : item.quantity
+            }}{{ item.quantity === "AppropriateAmount" ? "" : $t(`cookbook.${item.unit}`) }}
+          </p>
         </template>
       </el-table-column>
       <el-table-column prop="steps" label="步骤" align="center">
@@ -69,8 +72,14 @@
         <el-form-item label="名称">
           <el-input v-model="form.name" />
         </el-form-item>
+        <el-form-item label="名称（英文）">
+          <el-input v-model="form.name_en" />
+        </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="form.description" />
+        </el-form-item>
+        <el-form-item label="描述（英文）">
+          <el-input v-model="form.description_en" />
         </el-form-item>
         <el-form-item label="用时">
           <el-input-number v-model="form.time" :min="0" :max="360" />
@@ -82,7 +91,7 @@
           <el-input v-model="form.taste" style="max-width: 600px" placeholder="Please input" class="input-with-select">
             <template #append>
               <el-select v-model="form.taste" placeholder="口味" size="large" style="width: 240px">
-                <el-option v-for="item in tasteList" :key="item" :label="item" :value="item" />
+                <el-option v-for="item in tasteList" :key="item" :label="$t(`cookbook.${item}`)" :value="item" />
               </el-select>
             </template>
           </el-input>
@@ -91,7 +100,7 @@
           <el-input v-model="form.category" style="max-width: 600px" placeholder="Please input" class="input-with-select">
             <template #append>
               <el-select v-model="form.category" placeholder="品类" size="large" style="width: 240px">
-                <el-option v-for="item in categoryList" :key="item" :label="item" :value="item" />
+                <el-option v-for="item in categoryList" :key="item" :label="$t(`cookbook.${item}`)" :value="item" />
               </el-select>
             </template>
           </el-input>
@@ -128,8 +137,16 @@
             max-height="250"
             :show-header="false"
           >
-            <el-table-column fixed prop="key" label="key" />
-            <el-table-column prop="value" label="value" />
+            <el-table-column fixed prop="key" label="key">
+              <template #default="scope">
+                <span> {{ $t(`cookbook.${scope.row.key}`) }} </span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="value" label="value">
+              <template #default="scope">
+                <span> {{ scope.row.value }} </span>
+              </template>
+            </el-table-column>
             <el-table-column fixed="right" label="Operations" min-width="120">
               <template #default="scope">
                 <el-button link type="primary" size="small" @click.prevent="deleteNutritionRow(scope.row.key)"> 删除 </el-button>
@@ -137,7 +154,14 @@
             </el-table-column>
           </el-table>
           <div style="width: 100%; display: flex; margin-top: 10px">
-            <el-input v-model="nutrition_info_key" style="width: 120px" placeholder="营养" />
+            <el-select v-model="nutrition_info_key" style="width: 120px" placeholder="营养">
+              <el-option
+                v-for="item in nutrition_info_options"
+                :key="item.value"
+                :label="$t(`cookbook.${item.label}`)"
+                :value="item.value"
+              />
+            </el-select>
             <el-input v-model="nutrition_info_value" style="width: 120px" placeholder="数量" />
             <el-button type="primary" style="flex: 1" @click="onAddNutritionItem">增加该项</el-button>
           </div>
@@ -145,7 +169,15 @@
         <el-form-item label="食材">
           <el-table :data="form.ingredients" style="width: 100%" max-height="250" :show-header="false">
             <el-table-column fixed prop="name" label="name" />
-            <el-table-column prop="quantity" label="quantity" />
+            <el-table-column fixed prop="name_en" label="name_en" />
+            <el-table-column prop="quantity" label="quantity">
+              <template #default="scope">
+                <span>
+                  {{ scope.row.quantity === "AppropriateAmount" ? $t(`cookbook.${scope.row.quantity}`) : scope.row.quantity }}
+                  {{ scope.row.quantity === "AppropriateAmount" ? "" : $t(`cookbook.${scope.row.unit}`) }}
+                </span>
+              </template>
+            </el-table-column>
             <el-table-column fixed="right" label="Operations" min-width="120">
               <template #default="scope">
                 <el-button link type="primary" size="small" @click.prevent="deleteIngredientsRow(scope.$index)"> 删除 </el-button>
@@ -154,7 +186,32 @@
           </el-table>
           <div style="width: 100%; display: flex; margin-top: 10px">
             <el-input v-model="ingredients_name" style="width: 120px" placeholder="食材" />
-            <el-input v-model="ingredients_quantity" style="width: 120px" placeholder="数量" />
+            <el-input v-model="ingredients_name_en" style="width: 120px" placeholder="食材(英文)" />
+            <el-switch
+              v-model="ingredients_quantity_appropriate_amount"
+              inline-prompt
+              active-text="适量"
+              inactive-text="具体数量"
+            />
+            <el-input
+              v-if="!ingredients_quantity_appropriate_amount"
+              v-model="ingredients_quantity"
+              style="width: 120px"
+              placeholder="数量"
+            />
+            <el-select
+              v-if="!ingredients_quantity_appropriate_amount"
+              v-model="ingredients_quantity_unit"
+              style="width: 120px"
+              placeholder="单位"
+            >
+              <el-option
+                v-for="item in ingredients_quantity_unit_options"
+                :key="item.value"
+                :label="$t(`cookbook.${item.label}`)"
+                :value="item.value"
+              />
+            </el-select>
             <el-button type="primary" style="flex: 1" @click="onAddIngredientsItem">增加该项</el-button>
           </div>
         </el-form-item>
@@ -166,6 +223,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="description" label="description" />
+            <el-table-column prop="description_en" label="description_en" />
             <el-table-column fixed="right" label="Operations" min-width="120">
               <template #default="scope">
                 <el-button link type="primary" size="small" @click.prevent="deleteStepsRow(scope.$index)"> 删除 </el-button>
@@ -174,6 +232,7 @@
           </el-table>
           <div style="width: 100%; display: flex; margin-top: 10px">
             <el-input v-model="steps_description" style="width: 240px" placeholder="描述" />
+            <el-input v-model="steps_description_en" style="width: 240px" placeholder="描述(英文)" />
             <el-button type="primary" style="flex: 1" @click="onAddStepsItem">增加该项</el-button>
           </div>
         </el-form-item>
@@ -249,12 +308,14 @@ interface Form {
   time: number;
   difficulty: number;
   name: string;
+  name_en: string;
   category: string;
   description: string;
+  description_en: string;
   taste: string;
   nutrition_info: Record<string, string>;
   ingredients: Omit<Ingredients.Entity, "id">[];
-  steps: { description: string }[];
+  steps: { description: string; description_en: string }[];
 }
 
 let form = reactive<Form>({
@@ -262,8 +323,10 @@ let form = reactive<Form>({
   time: 0,
   difficulty: 1,
   name: "",
+  name_en: "",
   category: "",
   description: "",
+  description_en: "",
   taste: "",
   nutrition_info: {},
   ingredients: [],
@@ -276,8 +339,10 @@ const resetForm = () => {
     time: 0,
     difficulty: 0,
     name: "",
+    name_en: "",
     category: "",
     description: "",
+    description_en: "",
     taste: "",
     nutrition_info: {},
     ingredients: [],
@@ -358,8 +423,10 @@ const submitForm = async () => {
     time: form.time,
     difficulty: form.difficulty,
     name: form.name,
+    name_en: form.name_en,
     category: form.category,
     description: form.description,
+    description_en: form.description_en,
     taste: form.taste,
     nutrition_info: JSON.stringify(form.nutrition_info),
     ingredients: form.ingredients,
@@ -374,13 +441,13 @@ const submitForm = async () => {
   let resMsg: string = "";
   if (dialogActionType.value === "add") {
     const res = await addDiet(newDiet);
-    resCode = res.code;
-    resMsg = res.msg;
+    resCode = res.code ?? 0;
+    resMsg = res.msg ?? "";
   } else {
     if (!curEditItem.value) return;
     const res = await updateDiet({ ...newDiet, id: curEditItem.value.id });
-    resCode = res.code;
-    resMsg = res.msg;
+    resCode = res.code ?? 0;
+    resMsg = res.msg ?? "";
   }
 
   if (resCode === 200) {
@@ -401,7 +468,15 @@ async function handleEditStart(row: Diet.Entity) {
   curEditItem.value = row;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, ...others } = row;
-  form = reactive(others);
+  form = reactive<Form>({
+    ...others,
+    name_en: row.name_en || "",
+    description_en: row.description_en || "",
+    steps: others.steps.map(step => ({
+      description: step.description,
+      description_en: step.description_en || ""
+    }))
+  });
   dialogActionType.value = "edit";
   const fakerImgRawFile: UploadUserFile = {
     // 从 url decodeURIComponent 解码成中文
@@ -432,6 +507,24 @@ async function handleDel(id: number) {
 
 const nutrition_info_key = ref("");
 const nutrition_info_value = ref("");
+const nutrition_info_options = ref([
+  {
+    value: "calorie",
+    label: "calorie"
+  },
+  {
+    value: "fat",
+    label: "fat"
+  },
+  {
+    value: "protein",
+    label: "protein"
+  },
+  {
+    value: "carbohydrate",
+    label: "carbohydrate"
+  }
+]);
 const deleteNutritionRow = (key: string) => {
   delete form.nutrition_info[`${key}`];
 };
@@ -442,7 +535,24 @@ function onAddNutritionItem() {
   nutrition_info_value.value = "";
 }
 const ingredients_name = ref("");
+const ingredients_name_en = ref("");
+const ingredients_quantity_appropriate_amount = ref(false);
 const ingredients_quantity = ref("");
+const ingredients_quantity_unit = ref("");
+const ingredients_quantity_unit_options = ref([
+  {
+    value: "strip",
+    label: "strip"
+  },
+  {
+    value: "piece",
+    label: "piece"
+  },
+  {
+    value: "root",
+    label: "root"
+  }
+]);
 const deleteIngredientsRow = (index: number) => {
   form.ingredients.splice(index, 1);
 };
@@ -450,21 +560,29 @@ function onAddIngredientsItem() {
   if (!ingredients_name.value && !ingredients_quantity.value) return;
   form.ingredients.push({
     name: ingredients_name.value,
-    quantity: ingredients_quantity.value
+    name_en: ingredients_name_en.value,
+    quantity: ingredients_quantity_appropriate_amount.value ? "AppropriateAmount" : ingredients_quantity.value,
+    unit: ingredients_quantity_unit.value
   });
   ingredients_name.value = "";
+  ingredients_name_en.value = "";
   ingredients_quantity.value = "";
+  ingredients_quantity_unit.value = "";
+  ingredients_quantity_appropriate_amount.value = false;
 }
 const steps_description = ref("");
+const steps_description_en = ref("");
 const deleteStepsRow = (index: number) => {
   form.ingredients.splice(index, 1);
 };
 function onAddStepsItem() {
   if (!steps_description.value) return;
   form.steps.push({
-    description: steps_description.value
+    description: steps_description.value,
+    description_en: steps_description_en.value
   });
   steps_description.value = "";
+  steps_description_en.value = "";
 }
 </script>
 

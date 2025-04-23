@@ -39,8 +39,14 @@
         <el-form-item label="标题">
           <el-input v-model="form.title" />
         </el-form-item>
+        <el-form-item label="标题（英文）">
+          <el-input v-model="form.title_en" />
+        </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="form.description" />
+        </el-form-item>
+        <el-form-item label="描述（英文）">
+          <el-input v-model="form.description_en" />
         </el-form-item>
         <el-form-item label="视频">
           <el-upload
@@ -123,14 +129,18 @@ const dialogVisible = ref(false);
 
 let form = reactive({
   title: "",
+  title_en: "",
   description: "",
+  description_en: "",
   video: ""
 });
 
 const resetForm = () => {
   form = reactive({
     title: "",
+    title_en: "",
     description: "",
+    description_en: "",
     video: ""
   });
 };
@@ -199,20 +209,22 @@ const handleVideoSuccess = (response: any, uploadFile: UploadFile, uploadFiles: 
 const submitForm = async () => {
   const clone = {
     title: form.title,
+    title_en: form.title_en,
     description: form.description,
+    description_en: form.description_en,
     video: form.video
   };
   let resCode: string | number = 0;
   let resMsg: string = "";
   if (dialogActionType.value === "add") {
     const res = await addGuide(clone);
-    resCode = res.code;
-    resMsg = res.msg;
+    resCode = res.code ?? 0;
+    resMsg = res.message ?? "";
   } else {
     if (!curEditItem.value) return;
     const res = await updateGuide({ ...clone, id: curEditItem.value.id });
-    resCode = res.code;
-    resMsg = res.msg;
+    resCode = res.code ?? 0;
+    resMsg = res.message ?? "";
   }
 
   if (resCode === 200) {
@@ -233,7 +245,11 @@ async function handleEditStart(row: Guide.Entity) {
   curEditItem.value = row;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, ...others } = row;
-  form = reactive(others);
+  form = reactive({
+    ...others,
+    title_en: others.title_en || "",
+    description_en: others.description_en || ""
+  });
   dialogActionType.value = "edit";
   const fakerImgRawFile: UploadUserFile = {
     // 从 url decodeURIComponent 解码成中文
@@ -254,7 +270,7 @@ function getFileNameFromUrl(url: string) {
 
 async function handleDel(id: number) {
   const delRes = await delGuide({ id });
-  if (delRes.code === 200) {
+  if (delRes.errCode === 200) {
     ElMessage.success("删除成功");
     refreshTable();
   } else {

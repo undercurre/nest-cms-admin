@@ -25,5 +25,22 @@ export default {
     personalData: "个人信息",
     changePassword: "修改密码",
     logout: "退出登录"
+  },
+  cookbook: {
+    calorie: "卡路里",
+    fat: "脂肪",
+    protein: "蛋白质",
+    carbohydrate: "糖",
+    fresh: "鲜",
+    Spicy: "辣",
+    CantoneseCuisine: "粤菜",
+    Snacks: "小食",
+    SichuanCuisine: "川菜",
+    all: "全部",
+    AppropriateAmount: "适量",
+    strip: "条",
+    piece: "片",
+    root: "根",
+    g: "克"
   }
 };

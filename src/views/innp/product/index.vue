@@ -49,6 +49,9 @@
         <el-form-item label="产品名称">
           <el-input v-model="form.productName" />
         </el-form-item>
+        <el-form-item label="产品名称（英文）">
+          <el-input v-model="form.productNameEn" />
+        </el-form-item>
         <el-form-item label="产品图片">
           <el-upload
             :action="imgAction"
@@ -72,6 +75,9 @@
         </el-form-item>
         <el-form-item label="产品卖点">
           <el-input v-model="form.description" />
+        </el-form-item>
+        <el-form-item label="产品卖点（英文）">
+          <el-input v-model="form.descriptionEn" />
         </el-form-item>
         <el-form-item label="产品说明书">
           <el-upload
@@ -145,6 +151,7 @@ const saveInBulk = e => {
 const handleAddBtn = () => {
   dialogVisible.value = true;
   dialogActionType.value = "add";
+  resetForm();
 };
 
 const productList = ref<Array<Product.Entity>>();
@@ -167,8 +174,10 @@ type ProductForm = Omit<Product.Entity, "createTime" | "createUid" | "sku" | "up
 let form = reactive<ProductForm>({
   productModel: "",
   productName: "",
+  productNameEn: "",
   imageOssUrl: "",
   description: "",
+  descriptionEn: "",
   manualOssUrl: ""
 });
 
@@ -176,10 +185,14 @@ const resetForm = () => {
   form = reactive({
     productModel: "",
     productName: "",
+    productNameEn: "",
     imageOssUrl: "",
     description: "",
+    descriptionEn: "",
     manualOssUrl: ""
   });
+  uploadImgFileList.value = [];
+  uploadManualFileList.value = [];
 };
 
 const uploadImg = ref<UploadInstance>();
@@ -281,6 +294,18 @@ const handleManualChange = async (uploadFile: UploadFile) => {
     uploadManualFileList.value = [];
     return ElMessage.error("文件大小不能超过 5MB!");
   }
+  const allowedTypes = [
+    "image/jpg",
+    "image/jpeg",
+    "image/png",
+    "application/pdf",
+    "video/mp4",
+    "video/mov",
+    "video/webm"
+  ] as const;
+  if ((uploadFile.raw && !uploadFile.raw.type) || !allowedTypes.includes(uploadFile.raw && (uploadFile.raw.type as any))) {
+    return ElMessage.error("不支持的文件类型");
+  }
   const signatureManualRes = await getOSSSignature({
     headerContentType: uploadFile?.raw?.type,
     fileType: uploadFile?.raw?.type?.split("/")?.[1]
@@ -314,8 +339,10 @@ const submitForm = async () => {
   const clone = {
     model: form.productModel,
     name: form.productName,
+    nameEn: form.productNameEn,
     imageOssUrl: form.imageOssUrl,
     sellingPoints: form.description,
+    sellingPointsEn: form.descriptionEn,
     manualOssUrl: form.manualOssUrl
   };
   let resSuccess: boolean = false;
@@ -323,12 +350,12 @@ const submitForm = async () => {
   if (dialogActionType.value === "add") {
     const res = await addProduct(clone);
     resSuccess = res.success ?? false;
-    resMsg = res.msg;
+    resMsg = res.msg ?? "";
   } else {
     if (!curEditItem.value) return;
     const res = await updateProduct({ ...clone, id: curEditItem.value.id });
     resSuccess = res.success ?? false;
-    resMsg = res.msg;
+    resMsg = res.msg ?? "";
   }
 
   if (resSuccess) {
@@ -357,7 +384,7 @@ const watchQrCode = async (e: Product.Entity) => {
     console.log(canvas);
     QRCode.toCanvas(
       canvas,
-      `http://192.168.137.181:5175/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
+      `http://172.26.224.165:30343/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
       { width: 200 },
       error => {
         if (error) console.error(error);
@@ -407,7 +434,7 @@ function getFileNameFromUrl(url: string) {
 
 async function handleDel(id: number) {
   const delRes = await delProduct({ id });
-  if (delRes.code === 200) {
+  if (delRes.success) {
     ElMessage.success("删除成功");
     refreshTable();
   } else {
