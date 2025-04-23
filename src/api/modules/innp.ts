@@ -34,21 +34,21 @@ export const getProductList = () => {
  * @name 创建产品
  */
 export const addProduct = (params: Product.CreateParams) => {
-  return http.post<Product.Entity>(PORT3 + `/products`, params, { loading: true });
+  return http.post<Product.Entity>(PORT3 + `/h5/products`, params, { loading: true });
 };
 
 /**
  * @name 修改产品
  */
 export const updateProduct = (params: Product.UpdateParams) => {
-  return http.put<Product.Entity>(PORT3 + `/products`, params, { loading: true });
+  return http.put<Product.Entity>(PORT3 + `/h5/products`, params, { loading: true });
 };
 
 /**
  * @name 删除产品
  */
 export const delProduct = (params: Product.DelParams) => {
-  return http.delete<Product.Entity>(PORT3 + `/products/${params.id}`, params, { loading: true });
+  return http.delete<Product.Entity>(PORT3 + `/h5/products/${params.id}`, params, { loading: true });
 };
 
 /**

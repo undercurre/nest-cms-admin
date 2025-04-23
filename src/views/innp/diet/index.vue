@@ -181,7 +181,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleConfirm"> 确认 </el-button>
+          <el-button type="primary" @click="handleConfirm" :disabled="uploadLoading"> 确认 </el-button>
         </div>
       </template>
     </el-dialog>
@@ -192,7 +192,7 @@
 import { Diet, Ingredients } from "@/api/interface/innp";
 import { onBeforeMount, reactive, ref } from "vue";
 import { Plus } from "@element-plus/icons-vue";
-import { getDietList, addDiet, delDiet, updateDiet, getCategoryList, getTasteList, uploadAvatar } from "@/api/modules/innp";
+import { getDietList, addDiet, delDiet, updateDiet, getCategoryList, getTasteList, getOSSSignature } from "@/api/modules/innp";
 import {
   ElMessage,
   genFileId,
@@ -310,7 +310,9 @@ const getUrlConcat = (url: string) => {
   if (url.startsWith("http")) return url;
   return `${window.location.protocol}//${url}`;
 };
-const handleImageChange = (file: UploadFile, fileList: UploadFiles) => {
+// 上传loading
+const uploadLoading = ref(false);
+const handleImageChange = async (file: UploadFile, fileList: UploadFiles) => {
   console.log("uploadImg", fileList, file);
   const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file?.raw?.type ?? "");
   const isLt5M = (file?.size ?? 0) / 1024 / 1024 < 5;
@@ -322,31 +324,27 @@ const handleImageChange = (file: UploadFile, fileList: UploadFiles) => {
     uploadImageFileList.value = [];
     return ElMessage.error("文件大小不能超过 5MB!");
   }
-  getBase64(file.raw).then(res => {
-    uploadAvatar({
-      contentType: file?.raw?.type,
-      base64: res as string
-    }).then(ret => {
-      form.image = ret?.data?.url ?? "";
+
+  const signatureVideoRes = await getOSSSignature({
+    headerContentType: file?.raw?.type ?? "",
+    fileType: file?.raw?.type?.split("/")?.[1] ?? ""
+  });
+  uploadLoading.value = true;
+  try {
+    ElMessage.info("文件上传中，请稍等...");
+    const res = await fetch(signatureVideoRes.data.url ?? "", {
+      method: "PUT",
+      body: file.raw
     });
-  });
-};
-// 获取图片转base64
-const getBase64 = file => {
-  return new Promise(function (resolve, reject) {
-    const reader = new FileReader();
-    let imgResult = "";
-    reader.readAsDataURL(file);
-    reader.onload = function () {
-      imgResult = reader.result as string;
-    };
-    reader.onerror = function (error) {
-      reject(error);
-    };
-    reader.onloadend = function () {
-      resolve(imgResult);
-    };
-  });
+    uploadLoading.value = false;
+    form.image = signatureVideoRes.data.url?.split("?")?.[0] ?? "";
+    if (res.status === 200) {
+      ElMessage.success("文件上传成功");
+    }
+  } catch (error) {
+    uploadLoading.value = false;
+    ElMessage.error("文件上传失败");
+  }
 };
 
 const handleImageSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
@@ -396,30 +394,6 @@ const submitForm = async () => {
 
 const handleConfirm = async () => {
   submitForm();
-  // if (!uploadRawFileImage.value) {
-  //   submitForm();
-  //   return;
-  // }
-  // const signatureImageRes = await getOSSSignature({ fileType: "image" });
-  // console.log(signatureImageRes);
-
-  // imageAction.value = signatureImageRes.data.host;
-
-  // const imageUrlKey = generateFileName(signatureImageRes.data, uploadRawFileImage.value);
-
-  // extraImageData.value = {
-  //   key: imageUrlKey,
-  //   OSSAccessKeyId: signatureImageRes.data.accessId,
-  //   policy: signatureImageRes.data.policy,
-  //   signature: signatureImageRes.data.signature,
-  //   success_action_status: "200"
-  // };
-
-  // form.image = imageAction.value + "/" + imageUrlKey;
-
-  // console.log("key", imageUrlKey);
-
-  // uploadImage.value!.submit();
 };
 
 const curEditItem = ref<Diet.Entity>();

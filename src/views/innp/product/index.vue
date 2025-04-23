@@ -89,7 +89,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleConfirm" :disabled="uploadLoading"> 确认 </el-button>
+          <el-button type="primary" @click="handleConfirm" :disabled="uploadLoading || uploadImageLoading"> 确认 </el-button>
         </div>
       </template>
     </el-dialog>
@@ -112,7 +112,7 @@ import { Product } from "@/api/interface/innp";
 import { onBeforeMount, reactive, ref } from "vue";
 import { Plus } from "@element-plus/icons-vue";
 
-import { getProductList, addProduct, delProduct, updateProduct, uploadAvatar, getOSSSignature } from "@/api/modules/innp";
+import { getProductList, addProduct, delProduct, updateProduct, getOSSSignature } from "@/api/modules/innp";
 import QRCode from "qrcode";
 import {
   ElMessage,
@@ -191,7 +191,8 @@ const getUrlConcat = (url: string) => {
   return `${window.location.protocol}//${url}`;
 };
 // 上传图片接口对接
-const handleImgChange = (file: UploadFile, fileList: UploadFiles) => {
+const uploadImageLoading = ref(false);
+const handleImgChange = async (file: UploadFile, fileList: UploadFiles) => {
   console.log("uploadImg", fileList, file);
   const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file?.raw?.type ?? "");
   const isLt5M = (file.size ?? 0) / 1024 / 1024 < 5;
@@ -203,31 +204,26 @@ const handleImgChange = (file: UploadFile, fileList: UploadFiles) => {
     uploadImgFileList.value = [];
     return ElMessage.error("文件大小不能超过 5MB!");
   }
-  getBase64(file.raw).then(res => {
-    uploadAvatar({
-      contentType: file?.raw?.type,
-      base64: res as string
-    }).then(ret => {
-      form.imageOssUrl = ret?.data?.url ?? "";
+  const signatureVideoRes = await getOSSSignature({
+    headerContentType: file?.raw?.type ?? "",
+    fileType: file?.raw?.type?.split("/")?.[1] ?? ""
+  });
+  uploadImageLoading.value = true;
+  try {
+    ElMessage.info("文件上传中，请稍等...");
+    const res = await fetch(signatureVideoRes.data.url ?? "", {
+      method: "PUT",
+      body: file.raw
     });
-  });
-};
-// 获取图片转base64
-const getBase64 = file => {
-  return new Promise(function (resolve, reject) {
-    const reader = new FileReader();
-    let imgResult = "";
-    reader.readAsDataURL(file);
-    reader.onload = function () {
-      imgResult = reader.result as string;
-    };
-    reader.onerror = function (error) {
-      reject(error);
-    };
-    reader.onloadend = function () {
-      resolve(imgResult);
-    };
-  });
+    uploadImageLoading.value = false;
+    form.imageOssUrl = signatureVideoRes.data.url?.split("?")?.[0] ?? "";
+    if (res.status === 200) {
+      ElMessage.success("文件上传成功");
+    }
+  } catch (error) {
+    uploadImageLoading.value = false;
+    ElMessage.error("文件上传失败");
+  }
 };
 
 const handleImgSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
