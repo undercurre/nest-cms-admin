@@ -320,3 +320,29 @@ export function convertArrayToObject(arr: { prop: string; label: string }[]) {
   });
   return result;
 }
+
+/**
+ * @description 深拷贝
+ * */
+export function deepClone(obj) {
+  if (typeof obj !== "object" || obj === null) {
+    return obj;
+  }
+
+  let clone;
+  if (Array.isArray(obj)) {
+    clone = [];
+    for (let i = 0; i < obj.length; i++) {
+      clone[i] = deepClone(obj[i]);
+    }
+  } else {
+    clone = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        clone[key] = deepClone(obj[key]);
+      }
+    }
+  }
+
+  return clone;
+}

@@ -258,6 +258,7 @@
 import { Diet, Ingredients } from "@/api/interface/innp";
 import { addDiet, delDiet, getCategoryList, getDietList, getOSSSignature, getTasteList, updateDiet } from "@/api/modules/innp";
 import ExcelImport from "@/components/ExcelImport/index.vue";
+import { deepClone } from "@/utils";
 import { Plus } from "@element-plus/icons-vue";
 import {
   ElMessage,
@@ -564,9 +565,9 @@ const handleConfirm = async () => {
 
 const curEditItem = ref<Diet.Entity>();
 async function handleEditStart(row: Diet.Entity) {
-  curEditItem.value = row;
+  curEditItem.value = deepClone(row);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, ...others } = row;
+  const { id, ...others } = curEditItem.value!;
   form = reactive<Form>({
     ...others,
     name_en: row.name_en || "",
@@ -672,7 +673,7 @@ function onAddIngredientsItem() {
 const steps_description = ref("");
 const steps_description_en = ref("");
 const deleteStepsRow = (index: number) => {
-  form.ingredients.splice(index, 1);
+  form.steps.splice(index, 1);
 };
 function onAddStepsItem() {
   if (!steps_description.value) return;
