@@ -286,7 +286,7 @@ const handleManualChange = async (uploadFile: UploadFile) => {
     "video/mov",
     "video/webm"
   ] as const;
-  if (!uploadFile.raw.type || !allowedTypes.includes(uploadFile.raw.type as any)) {
+  if ((uploadFile.raw && !uploadFile.raw.type) || !allowedTypes.includes(uploadFile.raw && (uploadFile.raw.type as any))) {
     return ElMessage.error("不支持的文件类型");
   }
   const signatureManualRes = await getOSSSignature({
@@ -323,22 +323,22 @@ const submitForm = async () => {
     model: form.productModel,
     name: form.productName,
     nameEn: form.productNameEn,
-    imageUrl: form.imageOssUrl,
+    imageOssUrl: form.imageOssUrl,
     sellingPoints: form.description,
     sellingPointsEn: form.descriptionEn,
-    manualUrl: form.manualOssUrl
+    manualOssUrl: form.manualOssUrl
   };
   let resSuccess: boolean = false;
   let resMsg: string = "";
   if (dialogActionType.value === "add") {
     const res = await addProduct(clone);
     resSuccess = res.success ?? false;
-    resMsg = res.msg;
+    resMsg = res.msg ?? "";
   } else {
     if (!curEditItem.value) return;
     const res = await updateProduct({ ...clone, id: curEditItem.value.id });
     resSuccess = res.success ?? false;
-    resMsg = res.msg;
+    resMsg = res.msg ?? "";
   }
 
   if (resSuccess) {
