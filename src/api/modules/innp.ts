@@ -21,7 +21,7 @@ export const addConsumable = (params: Consumable.CreateParams) => {
  */
 export const getProductList = () => {
   return http.post<Array<Product.Entity>>(
-    PORT3 + "/products/page",
+    PORT3 + "/h5/products/page",
     {
       pageIndex: 1,
       pageSize: 99999
@@ -34,35 +34,35 @@ export const getProductList = () => {
  * @name 创建产品
  */
 export const addProduct = (params: Product.CreateParams) => {
-  return http.post<Product.Entity>(PORT3 + `/products`, params, { loading: true });
+  return http.post<Product.Entity>(PORT3 + `/h5/products`, params, { loading: true });
 };
 
 /**
  * @name 修改产品
  */
 export const updateProduct = (params: Product.UpdateParams) => {
-  return http.put<Product.Entity>(PORT3 + `/products`, params, { loading: true });
+  return http.put<Product.Entity>(PORT3 + `/h5/products`, params, { loading: true });
 };
 
 /**
  * @name 删除产品
  */
 export const delProduct = (params: Product.DelParams) => {
-  return http.delete<Product.Entity>(PORT3 + `/products/${params.id}`, params, { loading: true });
+  return http.delete<Product.Entity>(PORT3 + `/h5/products/${params.id}`, params, { loading: true });
 };
 
 /**
  * @name 获取OSS签名
  */
 export const getOSSSignature = (params: OSS.UploadParams) => {
-  return http.get<OSS.Signature>(PORT5 + `/aliOssFile/getSignUrl`, params);
+  return http.get<OSS.UploadRes>(PORT5 + `/aliOssFile/getSignUrl`, params);
 };
 
 /**
  * @name 图片上传接口
  */
 export const uploadAvatar = (params: OSS.UploadParams) => {
-  return http.post<{ url: string }>(PORT5 + `/aliOssFile/avatarUpload`, params, {
+  return http.post<OSS.UploadRes>(PORT5 + `/aliOssFile/avatarUpload`, params, {
     loading: true
   });
 };
