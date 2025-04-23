@@ -22,11 +22,13 @@ export namespace Product {
     createTime: string;
     createUid: string;
     description: string;
+    descriptionEn: string;
     id: number;
     imageOssUrl: string;
     manualOssUrl: string;
     productModel: string;
     productName: string;
+    productNameEn: string;
     sku: string;
     updateTime: string;
     updateUid: string | null;
@@ -37,7 +39,7 @@ export namespace Product {
     name: string;
     sellingPoints: string;
     imageUrl: string;
-    manualOssUrl: string;
+    manualUrl: string;
   }
 
   export interface UpdateParams extends Partial<CreateParams> {
@@ -51,12 +53,13 @@ export namespace Product {
 
 export namespace OSS {
   export interface Signature {
-    expire: string;
-    policy: string;
-    signature: string;
-    accessId: string;
-    host: string;
-    dir: string;
+    // expire: string;
+    // policy: string;
+    // signature: string;
+    // accessId: string;
+    // host: string;
+    // dir: string;
+    url: string;
   }
 
   export interface SignatureUploadParams {
@@ -67,7 +70,7 @@ export namespace OSS {
     success_action_status: string;
   }
   export interface UploadParams {
-    contentType: "image/jpg" | "image/jpeg" | "image/png" | "application/pdf";
+    contentType: "image/jpg" | "image/jpeg" | "image/png" | "application/pdf" | "video/mp4" | "video/mov" | "video/webm";
     base64?: string;
   }
 
@@ -80,9 +83,11 @@ export namespace Guide {
   export interface Entity {
     id: number;
     title: string;
+    title_en: string;
     createdAt: string;
     video: string;
     description: string;
+    description_en: string;
   }
 
   export interface CreateParams {
@@ -104,11 +109,13 @@ export namespace Diet {
   export interface Entity {
     id: number;
     name: string;
+    name_en: string;
     taste: string;
     nutrition_info: Record<string, string>;
     createdAt: string;
     image: string;
     description: string;
+    description_en: string;
     category: string;
     time: number;
     difficulty: number;
@@ -118,15 +125,17 @@ export namespace Diet {
 
   export interface CreateParams {
     name: string;
+    name_en: string;
     taste: string;
     nutrition_info: string;
     image: string;
     description: string;
+    description_en: string;
     category: string;
     time: number;
     difficulty: number;
     ingredients: { name: string; quantity: string }[];
-    steps: { step_number: number; description: string; image_url?: null | string }[];
+    steps: { step_number: number; description: string; description_en: string; image_url?: null | string }[];
   }
 
   export interface UpdateParams extends Partial<CreateParams> {
@@ -142,7 +151,9 @@ export namespace Ingredients {
   export interface Entity {
     id: number;
     name: string;
+    name_en: string;
     quantity: string;
+    unit: string;
   }
 
   export interface CreateParams {
@@ -164,6 +175,7 @@ export namespace Steps {
     id: number;
     step_number: number;
     description: string;
+    description_en: string;
     image_url: null | string;
   }
 

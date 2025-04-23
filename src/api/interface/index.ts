@@ -1,7 +1,11 @@
 // 请求响应参数（不包含data）
 export interface Result {
-  code: string | number;
-  msg: string;
+  errCode?: string | number | null;
+  errMessage?: string | null;
+  code?: string | number;
+  message?: string;
+  msg?: string;
+  success: boolean;
 }
 
 // 请求响应参数（包含data）

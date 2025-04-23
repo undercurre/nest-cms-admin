@@ -43,6 +43,9 @@
         <el-form-item label="产品名称">
           <el-input v-model="form.productName" />
         </el-form-item>
+        <el-form-item label="产品名称（英文）">
+          <el-input v-model="form.productNameEn" />
+        </el-form-item>
         <el-form-item label="产品图片">
           <el-upload
             :action="imgAction"
@@ -66,6 +69,9 @@
         </el-form-item>
         <el-form-item label="产品卖点">
           <el-input v-model="form.description" />
+        </el-form-item>
+        <el-form-item label="产品卖点（英文）">
+          <el-input v-model="form.descriptionEn" />
         </el-form-item>
         <el-form-item label="产品说明书">
           <el-upload
@@ -128,6 +134,7 @@ import {
 const handleAddBtn = () => {
   dialogVisible.value = true;
   dialogActionType.value = "add";
+  resetForm();
 };
 
 const productList = ref<Array<Product.Entity>>();
@@ -150,8 +157,10 @@ type ProductForm = Omit<Product.Entity, "createTime" | "createUid" | "sku" | "up
 let form = reactive<ProductForm>({
   productModel: "",
   productName: "",
+  productNameEn: "",
   imageOssUrl: "",
   description: "",
+  descriptionEn: "",
   manualOssUrl: ""
 });
 
@@ -159,10 +168,14 @@ const resetForm = () => {
   form = reactive({
     productModel: "",
     productName: "",
+    productNameEn: "",
     imageOssUrl: "",
     description: "",
+    descriptionEn: "",
     manualOssUrl: ""
   });
+  uploadImgFileList.value = [];
+  uploadManualFileList.value = [];
 };
 
 const uploadImg = ref<UploadInstance>();
@@ -193,8 +206,8 @@ const getUrlConcat = (url: string) => {
 // 上传图片接口对接
 const handleImgChange = (file: UploadFile, fileList: UploadFiles) => {
   console.log("uploadImg", fileList, file);
-  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file.raw.type);
-  const isLt5M = file.size / 1024 / 1024 < 5;
+  const isImg = file.raw ? ["image/jpg", "image/jpeg", "image/png"].includes(file.raw.type) : false;
+  const isLt5M = file?.size ? file.size / 1024 / 1024 < 5 : false;
   if (!isImg) {
     uploadImgFileList.value = [];
     return ElMessage.error("文件只能是.jpg, .jpeg, .png格式!");
@@ -203,9 +216,11 @@ const handleImgChange = (file: UploadFile, fileList: UploadFiles) => {
     uploadImgFileList.value = [];
     return ElMessage.error("文件大小不能超过 5MB!");
   }
-  getBase64(file.raw).then(res => {
+  if (!file.raw) return;
+  const fileType = file.raw.type as "image/jpg" | "image/jpeg" | "image/png" | "application/pdf";
+  getBase64(file.raw).then((res: string) => {
     uploadAvatar({
-      contentType: file.raw.type,
+      contentType: fileType,
       base64: res
     }).then(ret => {
       form.imageOssUrl = ret?.data?.url;
@@ -213,13 +228,13 @@ const handleImgChange = (file: UploadFile, fileList: UploadFiles) => {
   });
 };
 // 获取图片转base64
-const getBase64 = file => {
-  return new Promise(function (resolve, reject) {
+const getBase64 = (file: File): Promise<string> => {
+  return new Promise<string>(function (resolve, reject) {
     const reader = new FileReader();
     let imgResult = "";
     reader.readAsDataURL(file);
     reader.onload = function () {
-      imgResult = reader.result;
+      imgResult = reader.result as string;
     };
     reader.onerror = function (error) {
       reject(error);
@@ -258,8 +273,12 @@ const handleManualExceed: UploadProps["onExceed"] = files => {
 // 上传loading
 const uploadLoading = ref(false);
 const handleManualChange = async (uploadFile: UploadFile) => {
+  if (!uploadFile.raw?.type) {
+    uploadManualFileList.value = [];
+    return ElMessage.error("无法识别文件类型!");
+  }
   const isPdf = ["application/pdf"].includes(uploadFile.raw.type);
-  const isLt5M = uploadFile.size / 1024 / 1024 < 5;
+  const isLt5M = uploadFile?.size ? uploadFile.size / 1024 / 1024 < 5 : false;
   if (!isPdf) {
     uploadManualFileList.value = [];
     return ElMessage.error("文件只能是.pdf格式!");
@@ -268,9 +287,21 @@ const handleManualChange = async (uploadFile: UploadFile) => {
     uploadManualFileList.value = [];
     return ElMessage.error("文件大小不能超过 5MB!");
   }
+  const allowedTypes = [
+    "image/jpg",
+    "image/jpeg",
+    "image/png",
+    "application/pdf",
+    "video/mp4",
+    "video/mov",
+    "video/webm"
+  ] as const;
+  if (!uploadFile.raw.type || !allowedTypes.includes(uploadFile.raw.type as any)) {
+    return ElMessage.error("不支持的文件类型");
+  }
   const signatureManualRes = await getOSSSignature({
-    headerContentType: uploadFile.raw.type,
-    fileType: uploadFile.raw.type?.split("/")?.[1]
+    contentType: uploadFile.raw.type as (typeof allowedTypes)[number]
+    // fileType: uploadFile.raw.type?.split("/")?.[1]
   });
   uploadLoading.value = true;
   try {
@@ -301,21 +332,23 @@ const submitForm = async () => {
   const clone = {
     model: form.productModel,
     name: form.productName,
-    imageOssUrl: form.imageOssUrl,
+    nameEn: form.productNameEn,
+    imageUrl: form.imageOssUrl,
     sellingPoints: form.description,
-    manualOssUrl: form.manualOssUrl
+    sellingPointsEn: form.descriptionEn,
+    manualUrl: form.manualOssUrl
   };
   let resSuccess: boolean = false;
   let resMsg: string = "";
   if (dialogActionType.value === "add") {
     const res = await addProduct(clone);
     resSuccess = res.success;
-    resMsg = res.msg;
+    resMsg = res.msg || "添加失败";
   } else {
     if (!curEditItem.value) return;
     const res = await updateProduct({ ...clone, id: curEditItem.value.id });
     resSuccess = res.success;
-    resMsg = res.msg;
+    resMsg = res.msg || "修改失败";
   }
 
   if (resSuccess) {
@@ -344,7 +377,7 @@ const watchQrCode = async (e: Product.Entity) => {
     console.log(canvas);
     QRCode.toCanvas(
       canvas,
-      `http://192.168.137.181:5175/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
+      `http://172.26.224.165:30343/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
       { width: 200 },
       error => {
         if (error) console.error(error);
@@ -394,7 +427,7 @@ function getFileNameFromUrl(url: string) {
 
 async function handleDel(id: number) {
   const delRes = await delProduct({ id });
-  if (delRes.code === 200) {
+  if (delRes.success) {
     ElMessage.success("删除成功");
     refreshTable();
   } else {

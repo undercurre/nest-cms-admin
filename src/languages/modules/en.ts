@@ -25,5 +25,22 @@ export default {
     personalData: "Personal Data",
     changePassword: "Change Password",
     logout: "Logout"
+  },
+  cookbook: {
+    calorie: "calorie",
+    fat: "fat",
+    protein: "protein",
+    carbohydrate: "carbohydrate",
+    fresh: "Fresh",
+    Spicy: "Spicy",
+    CantoneseCuisine: "Cantonese Cuisine",
+    Snacks: "Snacks",
+    SichuanCuisine: "Sichuan Cuisine",
+    all: "All",
+    AppropriateAmount: "Appropriate amount",
+    strip: "strip",
+    piece: "piece",
+    root: "root",
+    g: "g"
   }
 };

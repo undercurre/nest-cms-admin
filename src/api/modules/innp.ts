@@ -62,7 +62,7 @@ export const getOSSSignature = (params: OSS.UploadParams) => {
  * @name 图片上传接口
  */
 export const uploadAvatar = (params: OSS.UploadParams) => {
-  return http.post<string>(PORT5 + `/aliOssFile/avatarUpload`, params, {
+  return http.post<{ url: string }>(PORT5 + `/aliOssFile/avatarUpload`, params, {
     loading: true
   });
 };
