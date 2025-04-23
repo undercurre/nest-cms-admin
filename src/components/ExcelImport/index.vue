@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TableSetting } from "@/api/interface/index";
+import { Product } from "@/api/interface/innp";
 import { convertArrayToObject } from "@/utils";
 import { Download, Upload } from "@element-plus/icons-vue";
 import { ElMessage, genFileId, UploadFile, UploadInstance, UploadProps, UploadRawFile } from "element-plus";
@@ -109,12 +110,19 @@ const handleCancel = () => {
 const handleConfirm = () => {
   emits("saveInBulk", importData.value);
 };
+
+// 更新导入的数据-导入失败时回显
+const updateImportData = (failList: Product.CreateParams[]) => {
+  importData.value = failList;
+};
+
 defineExpose({
-  handleCancel
+  handleCancel,
+  updateImportData
 });
 </script>
 <template>
-  <el-dialog v-model="dialogVisible" :title="title" width="90%" :close-on-click-modal="false">
+  <el-dialog v-model="dialogVisible" :title="title" width="80%" :close-on-click-modal="false">
     <el-space alignment="stretch">
       <el-button type="primary" :icon="Download" @click="exportTemplate">下载模板</el-button>
       <el-upload
@@ -141,7 +149,15 @@ defineExpose({
         :width="item.width"
       >
         <template #default="scope">
-          <el-input v-model="scope.row[item.prop]"></el-input>
+          <el-input v-model="scope.row[item.prop]" v-if="!item.disEditable"></el-input>
+          <span
+            v-else
+            :style="{
+              color: item.prop == 'errorMsg' ? 'red' : ''
+            }"
+          >
+            {{ scope.row[item.prop] }}
+          </span>
         </template>
       </el-table-column>
     </el-table>

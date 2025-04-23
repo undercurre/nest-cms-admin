@@ -107,5 +107,6 @@ export namespace TableSetting {
     prop: string;
     label: string;
     width?: string | number;
+    disEditable?: boolean; // 是否不可编辑
   }
 }

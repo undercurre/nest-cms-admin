@@ -40,12 +40,18 @@ export namespace Product {
     sellingPoints: string;
     imageOssUrl: string;
     manualOssUrl: string;
+    result?: boolean;
+    productSn?: string;
+    errorMsg?: string;
   }
 
   export interface UpdateParams extends Partial<CreateParams> {
     id: number;
   }
 
+  export interface BatchCreateParams {
+    productList: Product.CreateParams[];
+  }
   export interface DelParams {
     id: number;
   }

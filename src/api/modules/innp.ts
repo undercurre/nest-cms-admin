@@ -1,6 +1,6 @@
-import { Consumable, Diet, Guide, Ingredients, OSS, Product, Steps } from "@/api/interface/innp";
-import { PORT1, PORT3, PORT5 } from "@/api/config/servicePort";
 import http from "@/api";
+import { PORT1, PORT3, PORT5 } from "@/api/config/servicePort";
+import { Consumable, Diet, Guide, Ingredients, OSS, Product, Steps } from "@/api/interface/innp";
 
 /**
  * @name 查询耗材列表
@@ -44,6 +44,12 @@ export const updateProduct = (params: Product.UpdateParams) => {
   return http.put<Product.Entity>(PORT3 + `/h5/products`, params, { loading: true });
 };
 
+/**
+ * @name 批量导入产品
+ */
+export const batchCreateProduct = (params: Product.BatchCreateParams) => {
+  return http.post<Product.BatchCreateParams>(PORT3 + `/h5/products/batchCreateProduct`, params, { loading: true });
+};
 /**
  * @name 删除产品
  */

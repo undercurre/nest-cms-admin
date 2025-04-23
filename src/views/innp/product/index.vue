@@ -122,7 +122,7 @@
 
 <script setup lang="ts" name="user">
 import { Product } from "@/api/interface/innp";
-import { addProduct, delProduct, getOSSSignature, getProductList, updateProduct } from "@/api/modules/innp";
+import { addProduct, batchCreateProduct, delProduct, getOSSSignature, getProductList, updateProduct } from "@/api/modules/innp";
 import ExcelImport from "@/components/ExcelImport/index.vue";
 import { Plus } from "@element-plus/icons-vue";
 import {
@@ -139,6 +139,7 @@ import QRCode from "qrcode";
 import { onBeforeMount, reactive, ref } from "vue";
 
 const columnConfig = reactive([
+  { prop: "errorMsg", label: "导入状态", disEditable: true },
   { prop: "productModel", label: "产品型号" },
   { prop: "productName", label: "产品名称" },
   { prop: "productNameEn", label: "产品名称（英文）" },
@@ -149,8 +150,45 @@ const columnConfig = reactive([
 ]);
 const importBtn = ref<InstanceType<typeof ExcelImport>>();
 const saveInBulk = e => {
-  console.log(e);
-  importBtn.value?.handleCancel();
+  const params = e?.map((item, index) => {
+    delete item.errorMsg;
+    return {
+      ...item,
+      productSn: index
+    };
+  });
+  batchCreateProduct({ productList: params }).then(res => {
+    const retList = res.data.productList;
+    if (retList.every(item => item.result)) {
+      ElMessage.success("导入成功");
+      importBtn.value?.handleCancel();
+      refreshTable();
+    } else if (retList.some(item => item.result)) {
+      const failList: Product.CreateParams[] = [];
+      retList
+        .filter(item => !item.result)
+        .forEach(item => {
+          const index = params.findIndex(param => param.productSn === item.productSn);
+          if (index !== -1) {
+            params[index].errorMsg = item.errorMsg;
+          }
+          failList.push(params[index]);
+        });
+      importBtn.value?.updateImportData(failList);
+      ElMessage.warning("部分导入失败，请查看失败原因");
+    } else {
+      const failList: Product.CreateParams[] = [];
+      retList.forEach(item => {
+        const index = params.findIndex(param => param.productSn === item.productSn);
+        if (index !== -1) {
+          params[index].errorMsg = item.errorMsg;
+        }
+        failList.push(params[index]);
+      });
+      importBtn.value?.updateImportData(failList);
+      ElMessage.error("全部导入失败，请查看失败原因");
+    }
+  });
 };
 const handleAddBtn = () => {
   dialogVisible.value = true;
@@ -162,7 +200,6 @@ const productList = ref<Array<Product.Entity>>();
 
 async function refreshTable() {
   const res = await getProductList();
-  console.log(res);
   productList.value = res.data;
 }
 
