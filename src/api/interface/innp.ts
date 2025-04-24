@@ -35,10 +35,12 @@ export namespace Product {
   }
 
   export interface CreateParams {
-    model: string;
-    name: string;
-    sellingPoints: string;
+    productModel: string;
+    productName: string;
+    productNameEn: string;
     imageOssUrl: string;
+    description: string;
+    descriptionEn: string;
     manualOssUrl: string;
     result?: boolean;
     productSn?: string;

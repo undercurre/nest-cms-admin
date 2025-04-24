@@ -378,12 +378,12 @@ const handleManualSuccess = (response: any, uploadFile: UploadFile, uploadFiles:
 
 const submitForm = async () => {
   const clone = {
-    model: form.productModel,
-    name: form.productName,
-    nameEn: form.productNameEn,
+    productModel: form.productModel,
+    productName: form.productName,
+    productNameEn: form.productNameEn,
     imageOssUrl: form.imageOssUrl,
-    sellingPoints: form.description,
-    sellingPointsEn: form.descriptionEn,
+    description: form.description,
+    descriptionEn: form.descriptionEn,
     manualOssUrl: form.manualOssUrl
   };
   let resSuccess: boolean = false;
@@ -391,12 +391,12 @@ const submitForm = async () => {
   if (dialogActionType.value === "add") {
     const res = await addProduct(clone);
     resSuccess = res.success ?? false;
-    resMsg = res.msg ?? "";
+    resMsg = res.errMessage ?? "";
   } else {
     if (!curEditItem.value) return;
     const res = await updateProduct({ ...clone, id: curEditItem.value.id });
     resSuccess = res.success ?? false;
-    resMsg = res.msg ?? "";
+    resMsg = res.errMessage ?? "";
   }
 
   if (resSuccess) {
