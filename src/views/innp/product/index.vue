@@ -43,17 +43,17 @@
     </el-table>
 
     <el-dialog v-model="dialogVisible" :title="dialogActionType === 'add' ? '添加产品' : '修改产品'" width="500">
-      <el-form :model="form" label-width="auto" style="max-width: 600px">
-        <el-form-item label="产品型号">
+      <el-form :model="form" label-width="auto" style="max-width: 600px" :rules="rules" ref="ruleForm">
+        <el-form-item label="产品型号" prop="productModel">
           <el-input v-model="form.productModel" />
         </el-form-item>
-        <el-form-item label="产品名称">
+        <el-form-item label="产品名称" prop="productName">
           <el-input v-model="form.productName" />
         </el-form-item>
-        <el-form-item label="产品名称（英文）">
+        <el-form-item label="产品名称（英文）" prop="productNameEn">
           <el-input v-model="form.productNameEn" />
         </el-form-item>
-        <el-form-item label="产品图片">
+        <el-form-item label="产品图片" prop="imageOssUrl">
           <el-upload
             :action="imgAction"
             ref="uploadImg"
@@ -74,13 +74,13 @@
             </template>
           </el-upload>
         </el-form-item>
-        <el-form-item label="产品卖点">
+        <el-form-item label="产品卖点" prop="description">
           <el-input v-model="form.description" />
         </el-form-item>
-        <el-form-item label="产品卖点（英文）">
+        <el-form-item label="产品卖点（英文）" prop="descriptionEn">
           <el-input v-model="form.descriptionEn" />
         </el-form-item>
-        <el-form-item label="产品说明书">
+        <el-form-item label="产品说明书" prop="manualOssUrl">
           <el-upload
             class="upload_container"
             :action="manualAction"
@@ -136,8 +136,16 @@ import {
   UploadUserFile
 } from "element-plus";
 import QRCode from "qrcode";
-import { onBeforeMount, reactive, ref } from "vue";
+import { nextTick, onBeforeMount, reactive, ref } from "vue";
 
+const ruleForm = ref();
+const rules = reactive({
+  productModel: [{ required: true, message: "必填", trigger: "blur" }],
+  productName: [{ required: true, message: "必填", trigger: "blur" }],
+  productNameEn: [{ required: true, message: "必填", trigger: "blur" }],
+  imageOssUrl: [{ required: true, message: "请上传产品图片", trigger: "blur" }],
+  manualOssUrl: [{ required: true, message: "请上传产品说明书", trigger: "blur" }]
+});
 const columnConfig = reactive([
   { prop: "errorMsg", label: "导入状态", disEditable: true },
   { prop: "productModel", label: "产品型号" },
@@ -193,6 +201,9 @@ const saveInBulk = e => {
 const handleAddBtn = () => {
   dialogVisible.value = true;
   dialogActionType.value = "add";
+  nextTick(() => {
+    ruleForm.value.clearValidate();
+  });
   resetForm();
 };
 
@@ -415,7 +426,11 @@ const submitForm = async () => {
 };
 
 const handleConfirm = async () => {
-  submitForm();
+  ruleForm.value.validate(valid => {
+    if (valid) {
+      submitForm();
+    }
+  });
 };
 
 // 生成文件名，作为 key 使用
@@ -469,6 +484,9 @@ async function handleEditStart(row: Product.Entity) {
   uploadImgFileList.value = [fakerImgRawFile];
   uploadManualFileList.value = [fakerManualRawFile];
   dialogVisible.value = true;
+  nextTick(() => {
+    ruleForm.value.clearValidate();
+  });
 }
 
 function getFileNameFromUrl(url: string) {

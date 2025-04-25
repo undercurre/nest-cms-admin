@@ -37,20 +37,20 @@
     </el-table>
 
     <el-dialog v-model="dialogVisible" :title="dialogActionType === 'add' ? '添加指引' : '修改指引'" width="500">
-      <el-form :model="form" label-width="auto" style="max-width: 600px">
-        <el-form-item label="标题">
+      <el-form :model="form" label-width="auto" style="max-width: 600px" ref="ruleForm" :rules="rules">
+        <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" />
         </el-form-item>
-        <el-form-item label="标题（英文）">
+        <el-form-item label="标题（英文）" prop="title_en">
           <el-input v-model="form.title_en" />
         </el-form-item>
-        <el-form-item label="描述">
+        <el-form-item label="描述" prop="description">
           <el-input v-model="form.description" />
         </el-form-item>
-        <el-form-item label="描述（英文）">
+        <el-form-item label="描述（英文）" prop="description_en">
           <el-input v-model="form.description_en" />
         </el-form-item>
-        <el-form-item label="视频">
+        <el-form-item label="视频" prop="video">
           <el-upload
             class="upload_container"
             :action="videoAction"
@@ -97,6 +97,14 @@ import {
 } from "element-plus";
 import { nextTick, onBeforeMount, reactive, ref } from "vue";
 
+const ruleForm = ref();
+const rules = reactive({
+  title: [{ required: true, message: "必填", trigger: "blur" }],
+  title_en: [{ required: true, message: "必填", trigger: "blur" }],
+  description: [{ required: true, message: "必填", trigger: "blur" }],
+  description_en: [{ required: true, message: "必填", trigger: "blur" }],
+  video: [{ required: true, message: "请上传视频", trigger: "blur" }]
+});
 const columnConfig = reactive([
   { prop: "title", label: "标题" },
   { prop: "title_en", label: "标题（英文）" },
@@ -112,6 +120,9 @@ const saveInBulk = e => {
 const handleAddBtn = () => {
   resetForm();
   dialogVisible.value = true;
+  nextTick(() => {
+    ruleForm.value.clearValidate();
+  });
   dialogActionType.value = "add";
   nextTick(() => {
     uploadVideo.value!.clearFiles();
@@ -244,7 +255,11 @@ const submitForm = async () => {
 };
 
 const handleConfirm = async () => {
-  submitForm();
+  ruleForm.value.validate(valid => {
+    if (valid) {
+      submitForm();
+    }
+  });
 };
 
 const curEditItem = ref<Guide.Entity>();
@@ -265,6 +280,9 @@ async function handleEditStart(row: Guide.Entity) {
   };
   uploadVideoFileList.value = [fakerImgRawFile];
   dialogVisible.value = true;
+  nextTick(() => {
+    ruleForm.value.clearValidate();
+  });
 }
 
 function getFileNameFromUrl(url: string) {

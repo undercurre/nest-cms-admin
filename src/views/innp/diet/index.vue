@@ -76,23 +76,23 @@
     </el-table>
 
     <el-dialog v-model="dialogVisible" :title="dialogActionType === 'add' ? '添加' : '修改'" width="1000">
-      <el-form :model="form" label-width="auto" style="max-width: 600px">
-        <el-form-item label="名称">
+      <el-form :model="form" label-width="auto" style="max-width: 600px" ref="ruleForm" :rules="rules">
+        <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
-        <el-form-item label="名称（英文）">
+        <el-form-item label="名称（英文）" prop="name_en">
           <el-input v-model="form.name_en" />
         </el-form-item>
-        <el-form-item label="描述">
+        <el-form-item label="描述" prop="description">
           <el-input v-model="form.description" />
         </el-form-item>
-        <el-form-item label="描述（英文）">
+        <el-form-item label="描述（英文）" prop="description_en">
           <el-input v-model="form.description_en" />
         </el-form-item>
-        <el-form-item label="用时">
+        <el-form-item label="用时" prop="time">
           <el-input-number v-model="form.time" :min="0" :max="360" />
         </el-form-item>
-        <el-form-item label="难度">
+        <el-form-item label="难度" prop="difficulty">
           <el-input-number v-model="form.difficulty" :min="1" :max="3" />
         </el-form-item>
         <el-form-item label="口味">
@@ -113,7 +113,7 @@
             </template>
           </el-input>
         </el-form-item>
-        <el-form-item label="图片">
+        <el-form-item label="图片" prop="image">
           <el-upload
             :action="imageAction"
             :file-list="uploadImageFileList"
@@ -273,6 +273,16 @@ import {
 } from "element-plus";
 import { nextTick, onBeforeMount, reactive, ref } from "vue";
 
+const ruleForm = ref();
+const rules = reactive({
+  name: [{ required: true, message: "必填", trigger: "blur" }],
+  name_en: [{ required: true, message: "必填", trigger: "blur" }],
+  description: [{ required: true, message: "必填", trigger: "blur" }],
+  description_en: [{ required: true, message: "必填", trigger: "blur" }],
+  time: [{ required: true, message: "必填", trigger: "blur" }],
+  difficulty: [{ required: true, message: "必填", trigger: "blur" }],
+  image: [{ required: true, message: "请上传图片", trigger: "blur" }]
+});
 const columnConfig = reactive([
   {
     prop: "name",
@@ -368,6 +378,9 @@ const saveInBulk = e => {
 const handleAddBtn = () => {
   resetForm();
   dialogVisible.value = true;
+  nextTick(() => {
+    ruleForm.value.clearValidate();
+  });
   dialogActionType.value = "add";
   nextTick(() => {
     uploadImage.value!.clearFiles();
@@ -564,7 +577,11 @@ const submitForm = async () => {
 };
 
 const handleConfirm = async () => {
-  submitForm();
+  ruleForm.value.validate(valid => {
+    if (valid) {
+      submitForm();
+    }
+  });
 };
 
 const curEditItem = ref<Diet.Entity>();
@@ -589,6 +606,9 @@ async function handleEditStart(row: Diet.Entity) {
   };
   uploadImageFileList.value = [fakerImgRawFile];
   dialogVisible.value = true;
+  nextTick(() => {
+    ruleForm.value.clearValidate();
+  });
 }
 
 function getFileNameFromUrl(url: string) {
