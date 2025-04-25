@@ -4,6 +4,7 @@
     <p class="title">食谱配置</p>
     <div class="operations">
       <ExcelImport
+        v-if="false"
         ref="importBtn"
         title="导入食谱"
         :column-config="columnConfig"

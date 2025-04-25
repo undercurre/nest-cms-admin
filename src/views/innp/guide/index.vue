@@ -4,6 +4,7 @@
     <p class="title">指引配置</p>
     <div class="operations">
       <ExcelImport
+        v-if="false"
         ref="importBtn"
         title="导入指引"
         :column-config="columnConfig"

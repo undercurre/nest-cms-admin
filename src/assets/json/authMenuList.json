@@ -74,6 +74,36 @@
       ]
     },
     {
+      "path": "/tools",
+      "name": "tools",
+      "redirect": "/tools/urlByUpload",
+      "meta": {
+        "icon": "Tools",
+        "title": "工具类",
+        "isLink": "",
+        "isHide": true,
+        "isFull": false,
+        "isAffix": false,
+        "isKeepAlive": true
+      },
+      "children": [
+        {
+          "path": "/tools/urlByUpload",
+          "name": "urlByUpload",
+          "component": "/tools/urlByUpload/index",
+          "meta": {
+            "icon": "UploadFilled",
+            "title": "上传文件生成URL",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        }
+      ]
+    },
+    {
       "path": "/system",
       "name": "system",
       "redirect": "/system/user",
