@@ -81,7 +81,7 @@
         "icon": "Tools",
         "title": "工具类",
         "isLink": "",
-        "isHide": true,
+        "isHide": false,
         "isFull": false,
         "isAffix": false,
         "isKeepAlive": true

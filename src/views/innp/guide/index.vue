@@ -189,7 +189,10 @@ const handleVideoChange = async (uploadFile: UploadFile) => {
   });
   uploadLoading.value = true;
   try {
-    ElMessage.info("文件上传中，请稍等...");
+    ElMessage.info({
+      message: "文件上传中，请稍等...",
+      duration: 1500
+    });
     const res = await fetch(signatureVideoRes.data.url ?? "", {
       method: "PUT",
       body: uploadFile.raw
