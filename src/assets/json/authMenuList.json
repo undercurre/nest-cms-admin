@@ -48,7 +48,7 @@
           "name": "guide",
           "component": "/innp/guide/index",
           "meta": {
-            "icon": "Menu",
+            "icon": "Guide",
             "title": "指引配置",
             "isLink": "",
             "isHide": false,
@@ -62,8 +62,52 @@
           "name": "diet",
           "component": "/innp/diet/index",
           "meta": {
-            "icon": "Menu",
+            "icon": "KnifeFork",
             "title": "食谱配置",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        }
+      ]
+    },
+    {
+      "path": "/virtualDevice",
+      "name": "virtualDevice",
+      "redirect": "/virtualDevice/deviceList",
+      "meta": {
+        "icon": "Platform",
+        "title": "虚拟设备",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": false,
+        "isKeepAlive": true
+      },
+      "children": [
+        {
+          "path": "/virtualDevice/deviceList",
+          "name": "deviceList",
+          "component": "/virtualDevice/deviceList/index",
+          "meta": {
+            "icon": "Tickets",
+            "title": "设备列表",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        },
+        {
+          "path": "/virtualDevice/protocolImport",
+          "name": "protocolImport",
+          "component": "/virtualDevice/protocolImport/index",
+          "meta": {
+            "icon": "Upload",
+            "title": "导入协议",
             "isLink": "",
             "isHide": false,
             "isFull": false,
