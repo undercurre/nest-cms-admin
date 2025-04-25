@@ -4,7 +4,6 @@
     <p class="title">指引配置</p>
     <div class="operations">
       <ExcelImport
-        v-if="false"
         ref="importBtn"
         title="导入指引"
         :column-config="columnConfig"
@@ -114,7 +113,8 @@ const columnConfig = reactive([
 ]);
 const importBtn = ref<InstanceType<typeof ExcelImport>>();
 const saveInBulk = e => {
-  console.log(e);
+  // TODO:调批量保存的接口
+  console.log(e, "提交给后端的数据");
   importBtn.value?.handleCancel();
 };
 const handleAddBtn = () => {

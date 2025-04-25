@@ -4,9 +4,9 @@
     <p class="title">食谱配置</p>
     <div class="operations">
       <ExcelImport
-        v-if="false"
         ref="importBtn"
         title="导入食谱"
+        dialog-width="95%"
         :column-config="columnConfig"
         template-url="指引配置-导入模板.xlsx"
         @save-in-bulk="saveInBulk"
@@ -373,6 +373,64 @@ const columnConfig = reactive([
 const importBtn = ref<InstanceType<typeof ExcelImport>>();
 const saveInBulk = e => {
   console.log(e);
+  const submitData: any[] = [];
+  e.forEach(item => {
+    if (item.name) {
+      submitData.push({
+        name: item.name,
+        name_en: item.name_en,
+        image: item.image,
+        description: item.description,
+        description_en: item.description_en,
+        time: item.time,
+        difficulty: reverFormatDifficulty(item.difficulty),
+        taste: item.taste,
+        category: item.category,
+        nutrition_info: {
+          [item.nutrition_info_key]: item.nutrition_info_value
+        },
+        ingredients: [
+          {
+            name: item.ingredients_name,
+            name_en: item.ingredients_name_en,
+            quantity: item.ingredients_quantity,
+            unit: item.ingredients_quantity_unit
+          }
+        ],
+        steps: [
+          {
+            description: item.steps_description,
+            description_en: item.steps_description_en
+          }
+        ]
+      });
+    } else {
+      // 营养数据
+      if (item.nutrition_info_key) {
+        Object.assign(submitData[submitData.length - 1].nutrition_info, {
+          [item.nutrition_info_key]: item.nutrition_info_value
+        });
+      }
+      // 食材数据
+      if (item.ingredients_name || item.ingredients_name_en || item.ingredients_quantity || item.ingredients_quantity_unit) {
+        submitData[submitData.length - 1].ingredients.push({
+          name: item.ingredients_name,
+          name_en: item.ingredients_name_en,
+          quantity: item.ingredients_quantity,
+          unit: item.ingredients_quantity_unit
+        });
+      }
+      // 步骤数据
+      if (item.steps_description || item.steps_description_en) {
+        submitData[submitData.length - 1].steps.push({
+          description: item.steps_description,
+          description_en: item.steps_description_en
+        });
+      }
+    }
+  });
+  // TODO:调批量保存的接口
+  console.log(submitData, "提交给后端的数据");
   importBtn.value?.handleCancel();
 };
 const handleAddBtn = () => {
@@ -399,15 +457,21 @@ async function refreshTable() {
   const tasteRes = await getTasteList();
   tasteList.value = tasteRes.data;
 }
-
+const levelMap: Record<number, string> = {
+  1: "简单",
+  2: "普通",
+  3: "困难"
+};
 function formatDifficulty(level: number) {
-  const map: Record<number, string> = {
-    1: "简单",
-    2: "普通",
-    3: "困难"
-  };
+  return levelMap[level];
+}
 
-  return map[level];
+function reverFormatDifficulty(levelName) {
+  for (let i in levelMap) {
+    if (levelMap[i] === levelName) {
+      return Number(i);
+    }
+  }
 }
 
 onBeforeMount(() => {

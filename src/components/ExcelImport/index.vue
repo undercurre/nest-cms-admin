@@ -19,6 +19,10 @@ const props = defineProps({
   templateUrl: {
     default: "",
     type: String
+  },
+  dialogWidth: {
+    default: "80%",
+    type: String
   }
 });
 
@@ -122,7 +126,7 @@ defineExpose({
 });
 </script>
 <template>
-  <el-dialog v-model="dialogVisible" :title="title" width="80%" :close-on-click-modal="false">
+  <el-dialog v-model="dialogVisible" :title="title" :width="dialogWidth" :close-on-click-modal="false">
     <el-space alignment="stretch">
       <el-button type="primary" :icon="Download" @click="exportTemplate">下载模板</el-button>
       <el-upload
