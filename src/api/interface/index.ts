@@ -108,5 +108,11 @@ export namespace TableSetting {
     label: string;
     width?: string | number;
     disEditable?: boolean; // 是否不可编辑
+    formatter?: boolean;
   }
+}
+
+export interface SelectItem {
+  label: string;
+  value: string;
 }

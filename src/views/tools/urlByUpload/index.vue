@@ -84,27 +84,27 @@ const handleFileChange = async (file: UploadFile, uploadFiles: UploadFiles) => {
 </template>
 <style lang="scss" scoped>
 .uploaded-box {
+  padding: 12px 12px 2px;
   margin-top: 10px;
   background: #ffffff;
-  padding: 12px 12px 2px;
   .uploaded-item {
     display: flex;
     align-items: center;
     padding: 4px 12px;
-    background: #f0f0f0;
     margin-bottom: 10px;
+    background: #f0f0f0;
   }
   .uploaded-name {
     width: 300px;
   }
   .uploaded-url-flex {
-    margin-left: 40px;
     display: flex;
     align-items: center;
+    margin-left: 40px;
   }
   .uploaded-url {
-    color: #afafaf;
     margin-right: 16px;
+    color: #afafaf;
   }
   .ml-16px {
     margin-left: 16px;

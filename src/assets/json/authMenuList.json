@@ -102,6 +102,20 @@
           }
         },
         {
+          "path": "/virtualDevice/deviceDetail",
+          "name": "deviceDetail",
+          "component": "/virtualDevice/deviceList/detail",
+          "meta": {
+            "icon": "Tickets",
+            "title": "设备详情",
+            "isLink": "",
+            "isHide": true,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        },
+        {
           "path": "/virtualDevice/protocolImport",
           "name": "protocolImport",
           "component": "/virtualDevice/protocolImport/index",

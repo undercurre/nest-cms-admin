@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { TableSetting } from "@/api/interface/index";
-import { Product } from "@/api/interface/innp";
 import { convertArrayToObject } from "@/utils";
 import { Download, Upload } from "@element-plus/icons-vue";
 import { ElMessage, genFileId, UploadFile, UploadInstance, UploadProps, UploadRawFile } from "element-plus";
-import { PropType, ref } from "vue";
+import { nextTick, PropType, ref } from "vue";
 import * as XLSX from "xlsx";
 
 const props = defineProps({
   title: {
     default: "导入产品",
     type: String
+  },
+  isColumnCustom: {
+    default: false,
+    type: Boolean
   },
   columnConfig: {
     default: () => [],
@@ -19,10 +22,18 @@ const props = defineProps({
   templateUrl: {
     default: "",
     type: String
+  },
+  btnType: {
+    default: "plain",
+    type: String as PropType<"" | "primary" | "default" | "success" | "warning" | "info" | "text" | "danger">
+  },
+  btnColor: {
+    default: "",
+    type: String
   }
 });
 
-const emits = defineEmits(["saveInBulk"]);
+const emits = defineEmits(["saveInBulk", "openDialog", "update:columnConfig"]);
 const dialogVisible = ref(false);
 const importData = ref<any[]>([]);
 
@@ -44,7 +55,11 @@ const exportTemplate = () => {
 // 导入Excel文件
 const openExcelImportDialog = () => {
   dialogVisible.value = true;
+  nextTick(() => {
+    emits("openDialog");
+  });
 };
+const fileName = ref("");
 
 // 处理导入的Excel文件
 const handleUploadChange = (file: UploadFile) => {
@@ -55,6 +70,7 @@ const handleUploadChange = (file: UploadFile) => {
     return ElMessage.error("文件只能是.xls, .xlsx格式!");
   }
   const reader = new FileReader();
+  fileName.value = file.name;
 
   reader.onload = e => {
     if (!e.target || !(e.target.result instanceof ArrayBuffer)) {
@@ -70,7 +86,20 @@ const handleUploadChange = (file: UploadFile) => {
     const jsonData: string[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
     // 处理数据
     const headers = jsonData[0];
-    const columns = convertArrayToObject(props.columnConfig);
+    let columns = {};
+    let columnConfigTemp: TableSetting.Columns[] = [];
+    if (!props.isColumnCustom && props.columnConfig) {
+      columns = convertArrayToObject(props.columnConfig);
+    } else {
+      headers.map(item => {
+        Object.assign(columns, { [item]: item });
+        columnConfigTemp.push({
+          label: item,
+          prop: item
+        });
+        emits("update:columnConfig", columnConfigTemp);
+      });
+    }
     const importTemplateData: any[] = [];
     if (jsonData.length === 0) {
       ElMessage.error("导入数据为空，请检查文件");
@@ -108,11 +137,11 @@ const handleCancel = () => {
 };
 // 确认
 const handleConfirm = () => {
-  emits("saveInBulk", importData.value);
+  emits("saveInBulk", importData.value, fileName.value);
 };
 
 // 更新导入的数据-导入失败时回显
-const updateImportData = (failList: Product.CreateParams[]) => {
+const updateImportData = (failList: any[]) => {
   importData.value = failList;
 };
 
@@ -122,9 +151,11 @@ defineExpose({
 });
 </script>
 <template>
-  <el-dialog v-model="dialogVisible" :title="title" width="80%" :close-on-click-modal="false">
+  <el-dialog v-model="dialogVisible" :title="title" width="80%" :close-on-click-modal="false" append-to-body>
+    <slot></slot>
     <el-space alignment="stretch">
-      <el-button type="primary" :icon="Download" @click="exportTemplate">下载模板</el-button>
+      <slot name="header"></slot>
+      <el-button :icon="Download" @click="exportTemplate" v-if="templateUrl">下载模板</el-button>
       <el-upload
         ref="upload"
         action="#"
@@ -140,7 +171,7 @@ defineExpose({
       </el-upload>
     </el-space>
     <el-space :size="8"></el-space>
-    <el-table :data="importData">
+    <el-table :data="importData" v-if="columnConfig.length">
       <el-table-column
         v-for="item in columnConfig"
         :key="item.prop"
@@ -170,6 +201,6 @@ defineExpose({
     </template>
   </el-dialog>
   <!-- 导入 -->
-  <el-button plain :icon="Upload" @click="openExcelImportDialog">导入</el-button>
+  <el-button plain :icon="btnType === 'text' ? '' : Upload" @click="openExcelImportDialog" :type="btnType">导入</el-button>
 </template>
 <style lang="scss" scoped></style>

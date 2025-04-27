@@ -1,7 +1,7 @@
-import { defineStore } from "pinia";
-import { AuthState } from "@/stores/interface";
 import { getAuthButtonListApi, getAuthMenuListApi } from "@/api/modules/login";
-import { getFlatMenuList, getShowMenuList, getAllBreadcrumbList } from "@/utils";
+import { AuthState } from "@/stores/interface";
+import { getAllBreadcrumbList, getFlatMenuList, getShowMenuList } from "@/utils";
+import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore({
   id: "mova-auth",
