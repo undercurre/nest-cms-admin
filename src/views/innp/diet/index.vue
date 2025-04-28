@@ -1,17 +1,19 @@
 <!-- eslint-disable vue/html-closing-bracket-newline -->
 <template>
   <div class="card container">
-    <p class="title">食谱配置</p>
-    <div class="operations">
-      <ExcelImport
-        v-if="false"
-        ref="importBtn"
-        title="导入食谱"
-        :column-config="columnConfig"
-        template-url="指引配置-导入模板.xlsx"
-        @save-in-bulk="saveInBulk"
-      />
-      <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
+    <div class="container-header">
+      <p class="title">食谱配置</p>
+      <div class="operations">
+        <ExcelImport
+          v-if="false"
+          ref="importBtn"
+          title="导入食谱"
+          :column-config="columnConfig"
+          template-url="指引配置-导入模板.xlsx"
+          @save-in-bulk="saveInBulk"
+        />
+        <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
+      </div>
     </div>
     <el-table class="table" :data="dietList" style="width: 100%">
       <el-table-column prop="name" label="名称" align="center" />
@@ -161,7 +163,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div style="width: 100%; display: flex; margin-top: 10px">
+          <div style="display: flex; width: 100%; margin-top: 10px">
             <el-select v-model="nutrition_info_key" style="width: 120px" placeholder="营养">
               <el-option
                 v-for="item in nutrition_info_options"
@@ -192,7 +194,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div style="width: 100%; display: flex; margin-top: 10px">
+          <div style="display: flex; width: 100%; margin-top: 10px">
             <el-input v-model="ingredients_name" style="width: 120px" placeholder="食材" />
             <el-input v-model="ingredients_name_en" style="width: 120px" placeholder="食材(英文)" />
             <el-switch
@@ -238,7 +240,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div style="width: 100%; display: flex; margin-top: 10px">
+          <div style="display: flex; width: 100%; margin-top: 10px">
             <el-input v-model="steps_description" style="width: 240px" placeholder="描述" />
             <el-input v-model="steps_description_en" style="width: 240px" placeholder="描述(英文)" />
             <el-button type="primary" style="flex: 1" @click="onAddStepsItem">增加该项</el-button>
@@ -711,61 +713,38 @@ function onAddStepsItem() {
 </script>
 
 <style scoped lang="scss">
-.container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.operations {
-  align-self: flex-end;
-}
-
 .table {
-  width: 100%;
   flex: 1;
+  width: 100%;
 }
-
 .product_img_preview {
   width: 100%;
 }
-
 .btns {
   display: flex;
   justify-content: center;
 }
-
 .watch_qrcode {
   font-size: 14px;
   color: #606266;
 }
-
 .qrcode_container {
   display: flex;
   justify-content: center;
 }
-
 .qrcode {
   width: 200px;
   height: 200px;
 }
-
 .upload_container {
   width: 100%;
   height: 100%;
 }
-
 .preview_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 </style>
