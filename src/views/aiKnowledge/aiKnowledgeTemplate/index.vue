@@ -54,7 +54,7 @@ const queryForm = ref({
 // 获取数据
 const getTemplateList = () => {
   searchKnowledgeTemplate({
-    templateName: queryForm.value.templateName
+    ...queryForm.value
   }).then(res => {
     templateList.value = res.data.knowledgeBaseTemplateList;
   });
@@ -145,13 +145,13 @@ onBeforeMount(() => {
     </div>
     <el-form :inline="true" :model="queryForm" class="demo-form-inline" justify="space-between">
       <el-form-item label="模版名称">
-        <el-input v-model="queryForm.templateName" placeholder="模版名称" clearable />
+        <el-input v-model="queryForm.templateName" placeholder="模版名称" clearable @keyup.enter="getTemplateList" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="getTemplateList">查询</el-button>
       </el-form-item>
     </el-form>
-    <el-table class="table" :data="templateList" style="width: 100%">
+    <el-table class="table" :data="templateList" style="width: 100%" show-overflow-tooltip>
       <el-table-column
         v-for="item in templateColumnsConfig"
         :key="item.prop"

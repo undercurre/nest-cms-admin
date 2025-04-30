@@ -43,6 +43,7 @@ export namespace Feishu {
   export interface Sheets {
     sheet_id: string;
     title: string;
+    resource_type?: string;
   }
   export interface Ranges {
     values: string[][] | number[][];

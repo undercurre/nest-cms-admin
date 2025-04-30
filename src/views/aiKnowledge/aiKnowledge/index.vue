@@ -12,9 +12,9 @@ import {
   searchKnowledge,
   searchKnowledgeTemplate
 } from "@/api/modules/aiKnowledge";
-import { deepClone, deepEqual, isFeishuSheetUrl } from "@/utils";
+import { deepClone, deepEqualIgnoreOrder, getValType, isFeishuSheetUrl } from "@/utils";
 import { Plus, View } from "@element-plus/icons-vue";
-import { ElMessage } from "element-plus";
+import { Action, ElMessage, ElMessageBox } from "element-plus";
 import { nextTick, onBeforeMount, reactive, ref } from "vue";
 import CreateTemplate from "../component/createTemplate.vue";
 
@@ -81,14 +81,14 @@ const pageConfig = ref({
 // 获取数据
 const queryForm = ref({
   documentUrl: "",
-  name: ""
+  name: "",
+  label: ""
 });
 const getKnowledgeList = () => {
   searchKnowledge({
     pageNo: pageConfig.value.pageNo,
     pageSize: pageConfig.value.pageSize,
-    name: queryForm.value.name,
-    documentUrl: queryForm.value.documentUrl
+    ...queryForm.value
   }).then(res => {
     knowledgeList.value = res.data.knowledgeBaseList;
     pageConfig.value.total = res.data.total;
@@ -156,7 +156,7 @@ const handleDel = async id => {
 const dialogTemplateVisible = ref(false);
 const validatePass = (rule: any, value: any, callback: any) => {
   if (!isFeishuSheetUrl(value)) {
-    callback(new Error("输入的链接不为飞书多维表格链接"));
+    callback(new Error("输入的链接不为飞书电子表格链接"));
   } else {
     callback();
   }
@@ -214,10 +214,45 @@ const parseFeishuUrl = url => {
     return { obj_type: "", token: "" };
   }
 };
+// 飞书错误码汇总
+const getSheetsErrorMap = {
+  1310251: "参考响应体中的错误",
+  1310213: "没有电子表格权限",
+  1310249: "请恢复表格后重试",
+  1310214: "请检查表格 token",
+  1315201: "服务内部错误，详询飞书客服",
+  1315203: "服务内部错误，详询飞书客服",
+  1315210: "服务内部错误，详询飞书客服",
+  131001: "服务报错，请稍后重试",
+  131002: "数据类型不匹配",
+  131004: "非法用户",
+  131005: {
+    "member not found": "用户不是知识空间成员（管理员），无法删除。",
+    "identity not found": "userid不存在，无法添加/删除成员。",
+    "space not found": "知识空间不存在",
+    "node not found": "节点不存在",
+    "document not found": "文档不存在",
+    "document is not in wiki": "文档不在知识库中",
+    "resource not found": "资源不存在"
+  },
+  99991663: "登录过期",
+  131006: {
+    "permission denied: wiki space permission denied": "需要为知识空间成员（管理员）",
+    "permission denied: node permission denied": "读操作时需要有节点阅读权限。",
+    "permission denied: no source parent node permission": "需要原父节点容器编辑权限。",
+    "permission denied: no destination parent node permission": "需要目的父节点容器编辑权限。",
+    "permission denied: only task creator can query status": "为任务创建者（用户或应用/机器人）"
+  },
+  131007: "服务内部错误，请勿重试"
+};
 // 获取知识空间节点信息
 const getNodeInfo = (value: string): Promise<Feishu.NodeParams> => {
   const { obj_type, token } = parseFeishuUrl(value);
   return new Promise((resolve, reject) => {
+    if (obj_type === "sheets") {
+      resolve({ obj_type: "sheet", obj_token: token });
+      return;
+    }
     getNode({
       obj_type,
       token
@@ -228,7 +263,23 @@ const getNodeInfo = (value: string): Promise<Feishu.NodeParams> => {
       })
       .catch(err => {
         validateLoading.value = false;
-        reject(err);
+        if (err.response.data.code == 1310213) {
+          ElMessageBox.alert(
+            "您没有电子表格的阅读或编辑权限。请联系该文档管理员，通过电子表格网页页面右上方 [分享] 入口为您添加权限。",
+            "提示",
+            {
+              confirmButtonText: "知道了",
+              callback: (action: Action) => {
+                console.log("action: ", action);
+              }
+            }
+          );
+        }
+        if (getValType(getSheetsErrorMap[err.response.data.code]) === "string") {
+          reject(getSheetsErrorMap[err.response.data.code] ?? err.response.data.msg ?? err);
+        } else {
+          reject(getSheetsErrorMap[err.response.data.code]?.[err.response.data.msg] ?? err.response.data.msg ?? err);
+        }
       });
   });
 };
@@ -244,14 +295,33 @@ const getSheetsInfo = (obj_token: string = ""): Promise<Feishu.Sheets[]> => {
       })
       .catch(err => {
         validateLoading.value = false;
-        reject(err);
+        if (err.response.data.code == 1310213) {
+          ElMessageBox.alert(
+            "您没有电子表格的阅读或编辑权限。请联系该文档管理员，通过电子表格网页页面右上方 [分享] 入口为您添加权限。",
+            "提示",
+            {
+              confirmButtonText: "知道了",
+              callback: (action: Action) => {
+                console.log("action: ", action);
+              }
+            }
+          );
+        }
+        if (getValType(getSheetsErrorMap[err.response.data.code]) === "string") {
+          reject(getSheetsErrorMap[err.response.data.code] ?? err.response.data.msg ?? err);
+        } else {
+          reject(getSheetsErrorMap[err.response.data.code]?.[err.response.data.msg] ?? err.response.data.msg ?? err);
+        }
       });
   });
 };
 // 获取多个工作表范围
 const getValueInfo = (obj_token: string = "", sheets: Feishu.Sheets[]): Promise<Feishu.Ranges[]> => {
   return new Promise((resolve, reject) => {
-    const ranges = Array.from(sheets, ({ sheet_id }) => sheet_id).join(",");
+    const ranges = Array.from(
+      sheets.filter(item => item.resource_type === "sheet"),
+      ({ sheet_id }) => sheet_id
+    ).join(",");
     getValueBatchByRange({
       obj_token,
       ranges
@@ -262,14 +332,33 @@ const getValueInfo = (obj_token: string = "", sheets: Feishu.Sheets[]): Promise<
       })
       .catch(err => {
         validateLoading.value = false;
-        reject(err);
+        if (err.response.data.code == 1310213) {
+          ElMessageBox.alert(
+            "您没有电子表格的阅读或编辑权限。请联系该文档管理员，通过电子表格网页页面右上方 [分享] 入口为您添加权限。",
+            "提示",
+            {
+              confirmButtonText: "知道了",
+              callback: (action: Action) => {
+                console.log("action: ", action);
+              }
+            }
+          );
+        }
+        if (getValType(getSheetsErrorMap[err.response.data.code]) === "string") {
+          reject(getSheetsErrorMap[err.response.data.code] ?? err.response.data.msg ?? err);
+        } else {
+          reject(getSheetsErrorMap[err.response.data.code]?.[err.response.data.msg] ?? err.response.data.msg ?? err);
+        }
       });
   });
 };
 // 解析文档，是否匹配
 const parseDocument = async (value: string) => {
   validateLoading.value = true;
-  ElMessage.info("正在校验是否匹配模板，请稍候...");
+  ElMessage.info({
+    message: "正在校验是否匹配模板，请稍候...",
+    duration: 1500
+  });
   // 获取输入的知识空间节点信息
   const { obj_type, obj_token } = await getNodeInfo(value);
   // 获取模板的知识空间节点信息
@@ -284,20 +373,20 @@ const parseDocument = async (value: string) => {
   const sheetsTemplate = await getSheetsInfo(obj_token_template);
   if (sheets.length !== sheetsTemplate.length) {
     validateLoading.value = false;
-    return "输入的文件工作表数量和模板文件的工作表数量不同，请检查";
+    return `输入的文件工作表数量${sheets.length}和模板文件的工作表数量${sheetsTemplate.length}不同，请检查`;
   }
   // 获取输入的多个工作表范围
   const ranges = await getValueInfo(obj_token, sheets);
   // 获取模板的多个工作表范围
   const rangesTemplate = await getValueInfo(obj_token_template, sheetsTemplate);
   if (
-    !deepEqual(
+    !deepEqualIgnoreOrder(
       ranges?.map(item => item.values?.[0]),
       rangesTemplate?.map(item => item.values?.[0])
     )
   ) {
     validateLoading.value = false;
-    return "输入的文件和模板文件的不同，请检查";
+    return "输入的文件和模板文件的表头不一致，请检查";
   }
   validateLoading.value = false;
   return "";
@@ -308,6 +397,10 @@ const validateIsMatchedTemplate = async (rule: any, value: any, callback: any) =
   if (!!errMsg) {
     callback(new Error(errMsg));
   } else {
+    ElMessage.success({
+      message: "输入文件与模板文件匹配！",
+      duration: 1500
+    });
     callback();
   }
 };
@@ -380,7 +473,7 @@ onBeforeMount(() => {
     {
       id: "100001",
       name: "100001",
-      label: "咖啡机,IOT",
+      label: "咖啡机,IOT,宠物,洗地机,厨电",
       documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
       syncStatus: "已审核"
     },
@@ -427,16 +520,19 @@ onBeforeMount(() => {
     </div>
     <el-form :inline="true" :model="queryForm" class="demo-form-inline" justify="space-between">
       <el-form-item label="知识库名称">
-        <el-input v-model="queryForm.name" placeholder="知识库名称" clearable />
+        <el-input v-model="queryForm.name" placeholder="知识库名称" clearable @keyup.enter="search" />
+      </el-form-item>
+      <el-form-item label="标签">
+        <el-input v-model="queryForm.label" placeholder="标签" clearable @keyup.enter="search" />
       </el-form-item>
       <el-form-item label="飞书链接">
-        <el-input v-model="queryForm.documentUrl" placeholder="飞书链接" clearable />
+        <el-input v-model="queryForm.documentUrl" placeholder="飞书链接" clearable @keyup.enter="search" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="search">查询</el-button>
       </el-form-item>
     </el-form>
-    <el-table class="table" :data="knowledgeList" style="width: 100%">
+    <el-table class="table" :data="knowledgeList" style="width: 100%" show-overflow-tooltip>
       <el-table-column
         v-for="item in knowledgeColumnsConfig"
         :key="item.prop"
@@ -531,7 +627,7 @@ onBeforeMount(() => {
         <el-form-item label="文档链接" prop="documentUrl">
           <el-input
             v-model="knowledgeForm.documentUrl"
-            placeholder="请输入飞书多维表格链接"
+            placeholder="请输入飞书电子表格链接"
             :disabled="actionType != 'add' || !knowledgeForm.templateUrl"
           />
         </el-form-item>

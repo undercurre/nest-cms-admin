@@ -9,6 +9,7 @@ import { AIKnowLedge, Feishu } from "@/api/interface/aiKnowledge";
 export const getNode = (params: Feishu.NodeParams) => {
   return http.get<Feishu.NodeRes>(`${PORT6}/wiki/v2/spaces/get_node`, params, {
     loading: false,
+    hideErrorMsg: true,
     headers: {
       Authorization: "Bearer "
     }
@@ -24,6 +25,7 @@ export const getSheets = (params: Feishu.NodeParams) => {
     {},
     {
       loading: false,
+      hideErrorMsg: true,
       headers: {
         Authorization: "Bearer "
       }
@@ -42,6 +44,7 @@ export const getValueBatchByRange = (params: Feishu.NodeParams) => {
     },
     {
       loading: false,
+      hideErrorMsg: true,
       headers: {
         Authorization: "Bearer "
       }

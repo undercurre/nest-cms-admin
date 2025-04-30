@@ -54,7 +54,7 @@ const templateForm = ref<AIKnowLedge.TemplateEntity>({
 });
 const validatePass = (rule: any, value: any, callback: any) => {
   if (!isFeishuSheetUrl(value)) {
-    callback(new Error("请输入飞书多维表格链接"));
+    callback(new Error("请输入飞书电子表格链接"));
   } else {
     callback();
   }
@@ -123,7 +123,7 @@ const handelLabelChange = e => {
         <el-input v-model="templateForm.templateName" placeholder="请输入模板名称" />
       </el-form-item>
       <el-form-item label="文档链接" prop="templateUrl">
-        <el-input v-model="templateForm.templateUrl" placeholder="请输入飞书多维表格链接" :disabled="actionType != 'add'" />
+        <el-input v-model="templateForm.templateUrl" placeholder="请输入飞书电子表格链接" :disabled="actionType != 'add'" />
       </el-form-item>
       <el-form-item label="标签" prop="labels">
         <el-select

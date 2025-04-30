@@ -368,7 +368,7 @@ export function isFeishuSheetUrl(url: string): boolean {
 }
 
 /**
- * 深度比较两个值是否相等
+ * 深度比较两个值是否相等-严格按照顺序比对
  * @param a 第一个值
  * @param b 第二个值
  * @returns 如果两个值深度相等则返回true，否则返回false
@@ -410,5 +410,59 @@ export function deepEqual<T>(a: T, b: T): boolean {
   }
 
   // 其他情况（如函数、Symbol等）直接返回false，因为它们通常无法可靠比较
+  return false;
+}
+
+/**
+ * 深度比较两个值是否相等（忽略数组顺序和对象属性顺序）
+ * @param a 第一个值
+ * @param b 第二个值
+ * @returns 如果两个值深度相等则返回true，否则返回false
+ */
+export function deepEqualIgnoreOrder(a: any, b: any): boolean {
+  // 处理基本类型和null/undefined的快速路径
+  if (a === b) return true;
+
+  // 检查null或undefined
+  if (a == null || b == null) return false;
+
+  // 检查类型是否相同
+  if (typeof a !== typeof b) return false;
+
+  // 处理数组
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+
+    // 创建一个b数组的副本用于匹配元素
+    const bCopy = [...b];
+
+    for (const aItem of a) {
+      const index = bCopy.findIndex(bItem => deepEqual(aItem, bItem));
+      if (index === -1) return false;
+      // 移除已匹配的元素以避免重复匹配
+      bCopy.splice(index, 1);
+    }
+
+    return true;
+  }
+
+  // 处理对象
+  if (typeof a === "object" && typeof b === "object") {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+
+    // 检查属性数量是否相同
+    if (aKeys.length !== bKeys.length) return false;
+
+    // 检查每个属性是否在另一个对象中存在且值相等
+    for (const key of aKeys) {
+      if (!b.hasOwnProperty(key)) return false;
+      if (!deepEqual(a[key], b[key])) return false;
+    }
+
+    return true;
+  }
+
+  // 其他情况（如函数、Symbol等）认为不相等，除非它们严格相等（已在开头检查过）
   return false;
 }
