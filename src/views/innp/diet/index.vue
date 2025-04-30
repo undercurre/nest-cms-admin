@@ -1,17 +1,19 @@
 <!-- eslint-disable vue/html-closing-bracket-newline -->
 <template>
   <div class="card container">
-    <p class="title">食谱配置</p>
-    <div class="operations">
-      <ExcelImport
-        v-if="false"
-        ref="importBtn"
-        title="导入食谱"
-        :column-config="columnConfig"
-        template-url="指引配置-导入模板.xlsx"
-        @save-in-bulk="saveInBulk"
-      />
-      <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
+    <div class="container-header">
+      <p class="title">食谱配置</p>
+      <div class="operations">
+        <ExcelImport
+          v-if="false"
+          ref="importBtn"
+          title="导入食谱"
+          :column-config="columnConfig"
+          template-url="指引配置-导入模板.xlsx"
+          @save-in-bulk="saveInBulk"
+        />
+        <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
+      </div>
     </div>
     <el-table class="table" :data="dietList" style="width: 100%">
       <el-table-column prop="name" label="名称" align="center" />
@@ -711,19 +713,6 @@ function onAddStepsItem() {
 </script>
 
 <style scoped lang="scss">
-.container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
-.title {
-  font-size: 20px;
-  font-weight: 700;
-}
-.operations {
-  align-self: flex-end;
-}
 .table {
   flex: 1;
   width: 100%;

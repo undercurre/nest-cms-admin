@@ -136,29 +136,31 @@ onBeforeMount(() => {
 </script>
 <template>
   <div class="card container">
-    <p class="title">导入协议</p>
-    <div class="operations">
-      <ExcelImport
-        ref="importBtn"
-        title="导入协议"
-        @save-in-bulk="saveInBulk"
-        @open-dialog="handleAdd"
-        v-model:column-config="columnConfigImport"
-        :is-column-custom="true"
-      >
-        <div>
-          <el-form :model="form" label-width="auto" ref="ruleForm" :rules="rules">
-            <el-form-item label="设备型号" prop="model">
-              <el-select v-model="form.model" placeholder="设备型号" size="large" style="width: 240px">
-                <el-option v-for="item in modelList" :key="item.value" :label="item.label" :value="item.value" />
-              </el-select>
-            </el-form-item>
-          </el-form>
-        </div>
-        <template #header>
-          <div style="margin-top: 4px; margin-left: 14px">导入协议</div>
-        </template>
-      </ExcelImport>
+    <div class="container-header">
+      <p class="title">导入协议</p>
+      <div class="operations">
+        <ExcelImport
+          ref="importBtn"
+          title="导入协议"
+          @save-in-bulk="saveInBulk"
+          @open-dialog="handleAdd"
+          v-model:column-config="columnConfigImport"
+          :is-column-custom="true"
+        >
+          <div>
+            <el-form :model="form" label-width="auto" ref="ruleForm" :rules="rules">
+              <el-form-item label="设备型号" prop="model">
+                <el-select v-model="form.model" placeholder="设备型号" size="large" style="width: 240px">
+                  <el-option v-for="item in modelList" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+              </el-form-item>
+            </el-form>
+          </div>
+          <template #header>
+            <div style="margin-top: 4px; margin-left: 14px">导入协议</div>
+          </template>
+        </ExcelImport>
+      </div>
     </div>
 
     <el-table class="table" :data="protocolList" style="width: 100%">
@@ -207,19 +209,6 @@ onBeforeMount(() => {
 </template>
 
 <style scoped lang="scss">
-.container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
-.title {
-  font-size: 20px;
-  font-weight: 700;
-}
-.operations {
-  align-self: flex-end;
-}
 .table {
   flex: 1;
   width: 100%;

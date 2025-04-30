@@ -96,11 +96,12 @@ onBeforeMount(() => {
 </script>
 <template>
   <div class="card container">
-    <p class="title">设备列表</p>
-    <div class="operations">
-      <el-button type="primary" :icon="Plus" @click="handleAdd">添加</el-button>
+    <div class="container-header">
+      <p class="title">设备列表</p>
+      <div class="operations">
+        <el-button type="primary" :icon="Plus" @click="handleAdd">添加</el-button>
+      </div>
     </div>
-
     <el-table class="table" :data="deviceList" style="width: 100%" @row-click="go2Detail">
       <el-table-column
         v-for="item in columnConfig"
@@ -152,19 +153,6 @@ onBeforeMount(() => {
 </template>
 
 <style scoped lang="scss">
-.container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
-.title {
-  font-size: 20px;
-  font-weight: 700;
-}
-.operations {
-  align-self: flex-end;
-}
 .table {
   flex: 1;
   width: 100%;

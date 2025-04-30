@@ -1,16 +1,18 @@
 <!-- eslint-disable vue/html-closing-bracket-newline -->
 <template>
   <div class="card container">
-    <p class="title">产品配置</p>
-    <div class="operations">
-      <ExcelImport
-        ref="importBtn"
-        title="导入产品"
-        :column-config="columnConfig"
-        template-url="产品配置-导入模板.xlsx"
-        @save-in-bulk="saveInBulk"
-      />
-      <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
+    <div class="container-header">
+      <p class="title">产品配置</p>
+      <div class="operations">
+        <ExcelImport
+          ref="importBtn"
+          title="导入产品"
+          :column-config="columnConfig"
+          template-url="产品配置-导入模板.xlsx"
+          @save-in-bulk="saveInBulk"
+        />
+        <el-button type="primary" :icon="Plus" @click="handleAddBtn">添加</el-button>
+      </div>
     </div>
     <el-table class="table" :data="productList" style="width: 100%">
       <el-table-column prop="id" label="Id" width="50" align="center" />
@@ -509,61 +511,38 @@ async function handleDel(id: number) {
 </script>
 
 <style scoped lang="scss">
-.container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.operations {
-  align-self: flex-end;
-}
-
 .table {
-  width: 100%;
   flex: 1;
+  width: 100%;
 }
-
 .product_img_preview {
   width: 100%;
 }
-
 .btns {
   display: flex;
   justify-content: center;
 }
-
 .watch_qrcode {
   font-size: 14px;
   color: #606266;
 }
-
 .qrcode_container {
   display: flex;
   justify-content: center;
 }
-
 .qrcode {
   width: 200px;
   height: 200px;
 }
-
 .upload_container {
   width: 100%;
   height: 100%;
 }
-
 .preview_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 </style>
