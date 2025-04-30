@@ -10,7 +10,7 @@ export const getNode = (params: Feishu.NodeParams) => {
   return http.get<Feishu.NodeRes>(`${PORT6}/wiki/v2/spaces/get_node`, params, {
     loading: false,
     headers: {
-      Authorization: "Bearer t-g1044tk0M3MYU2NRBNHVR6LYSYIJ6VEVQUDSRBAS"
+      Authorization: "Bearer "
     }
   });
 };
@@ -25,7 +25,7 @@ export const getSheets = (params: Feishu.NodeParams) => {
     {
       loading: false,
       headers: {
-        Authorization: "Bearer t-g1044tk0M3MYU2NRBNHVR6LYSYIJ6VEVQUDSRBAS"
+        Authorization: "Bearer "
       }
     }
   );
@@ -43,7 +43,7 @@ export const getValueBatchByRange = (params: Feishu.NodeParams) => {
     {
       loading: false,
       headers: {
-        Authorization: "Bearer t-g1044tk0M3MYU2NRBNHVR6LYSYIJ6VEVQUDSRBAS"
+        Authorization: "Bearer "
       }
     }
   );
