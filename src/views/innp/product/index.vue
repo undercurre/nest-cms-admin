@@ -30,6 +30,9 @@
             <el-button class="watch_qrcode" link type="primary" size="small" @click="watchQrCode(scoped.row)"
               >查看二维码</el-button
             >
+            <el-button class="watch_qrcode" link type="primary" size="small" @click="watchNewQrCode(scoped.row)"
+              >查看二维码（新版）</el-button
+            >
             <el-button link
               ><el-link :href="getUrlConcat(scoped.row.manualOssUrl)" target="_blank" underline>下载说明书</el-link></el-button
             >
@@ -449,6 +452,24 @@ const watchQrCode = async (e: Product.Entity) => {
     QRCode.toCanvas(
       canvas,
       `http://172.26.224.165:30343/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
+      { width: 200 },
+      error => {
+        if (error) console.error(error);
+        console.log("二维码生成成功");
+      }
+    );
+  });
+};
+
+const watchNewQrCode = async (e: Product.Entity) => {
+  watchQrCodeItem.value = e;
+  dialogQrcodeVisible.value = true;
+  requestAnimationFrame(() => {
+    canvas = document.getElementById("qrcode");
+    console.log(canvas);
+    QRCode.toCanvas(
+      canvas,
+      `http://172.26.224.136:31211/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
       { width: 200 },
       error => {
         if (error) console.error(error);
