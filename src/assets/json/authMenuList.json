@@ -74,6 +74,50 @@
       ]
     },
     {
+      "path": "/aiKnowledge",
+      "name": "aiKnowledge",
+      "redirect": "/aiKnowledge/aiKnowledge",
+      "meta": {
+        "icon": "Shop",
+        "title": "AI知识库",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": false,
+        "isKeepAlive": true
+      },
+      "children": [
+        {
+          "path": "/aiKnowledge/aiKnowledgeTemplate",
+          "name": "aiKnowledgeTemplate",
+          "component": "/aiKnowledge/aiKnowledgeTemplate/index",
+          "meta": {
+            "icon": "Reading",
+            "title": "知识库模板",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        },
+        {
+          "path": "/aiKnowledge/aiKnowledge",
+          "name": "aiKnowledge",
+          "component": "/aiKnowledge/aiKnowledge/index",
+          "meta": {
+            "icon": "MagicStick",
+            "title": "AI知识库",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        }
+      ]
+    },
+    {
       "path": "/tools",
       "name": "tools",
       "redirect": "/tools/urlByUpload",

@@ -108,5 +108,9 @@ export namespace TableSetting {
     label: string;
     width?: string | number;
     disEditable?: boolean; // 是否不可编辑
+    component?: string;
+    tagClassMap?: object;
+    tagColorMap?: object;
+    compProps?: any;
   }
 }

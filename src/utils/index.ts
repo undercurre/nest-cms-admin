@@ -346,3 +346,69 @@ export function deepClone(obj) {
 
   return clone;
 }
+
+/**
+ * @description 数据类型获取
+ */
+export function getValType(item) {
+  const valueType = Object.prototype.toString.call(item).slice(8, -1).toLowerCase();
+  return valueType;
+}
+
+/**
+ * 检查字符串是否为有效的飞书电子表格链接
+ * @param url 待检查的URL字符串
+ * @returns 返回匹配结果（true/false），或返回匹配的URL（如果returnMatch为true）
+ */
+export function isFeishuSheetUrl(url: string): boolean {
+  // 飞书电子表格链接正则（支持带参数）
+  const feishuLinkRegex =
+    /^https:\/\/[a-zA-Z0-9-]+\.feishu\.cn\/(wiki\/[a-zA-Z0-9]+(\?[^#\s]*)?|sheets\/[a-zA-Z0-9]+(\?[^#\s]*)?)(#.*)?$/;
+  return feishuLinkRegex.test(url);
+}
+
+/**
+ * 深度比较两个值是否相等
+ * @param a 第一个值
+ * @param b 第二个值
+ * @returns 如果两个值深度相等则返回true，否则返回false
+ */
+export function deepEqual<T>(a: T, b: T): boolean {
+  // 处理基本类型和null/undefined的快速路径
+  if (a === b) return true;
+
+  // 如果其中一个是null或undefined，另一个不是，则不相等
+  if (a == null || b == null) return false;
+
+  // 检查类型是否相同
+  if (typeof a !== typeof b) return false;
+
+  // 处理数组比较
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  // 处理对象比较
+  if (typeof a === "object" && typeof b === "object") {
+    const keysA = Object.keys(a) as Array<keyof T>;
+    const keysB = Object.keys(b) as Array<keyof T>;
+
+    // 检查键的数量是否相同
+    if (keysA.length !== keysB.length) return false;
+
+    // 检查所有键和对应的值是否相同
+    for (const key of keysA) {
+      if (!keysB.includes(key)) return false;
+      if (!deepEqual(a[key], b[key])) return false;
+    }
+
+    return true;
+  }
+
+  // 其他情况（如函数、Symbol等）直接返回false，因为它们通常无法可靠比较
+  return false;
+}
