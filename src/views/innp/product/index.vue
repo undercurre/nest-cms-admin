@@ -311,7 +311,7 @@ const watchQrCode = async (e: Product.Entity) => {
     console.log(canvas);
     QRCode.toCanvas(
       canvas,
-      `http://192.168.137.88:5173/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
+      `http://172.26.224.136:31211/web/cms/markH5/product/${watchQrCodeItem.value?.id}`,
       { width: 200 },
       error => {
         if (error) console.error(error);

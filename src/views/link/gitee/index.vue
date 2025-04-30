@@ -2,7 +2,7 @@
   <div class="card content-box">
     <span class="text">
       Gitee 仓库：
-      <a href="https://gitee.com/HalseySpicy/Mova-cms" target="_blank">https://gitee.com/HalseySpicy/Mova-cms</a>
+      <a href="https://gitee.com/HalseySpicy/Mova" target="_blank">https://gitee.com/HalseySpicy/Mova</a>
       🍒🍉🍊
     </span>
   </div>
