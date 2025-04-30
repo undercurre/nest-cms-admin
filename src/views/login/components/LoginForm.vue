@@ -86,7 +86,7 @@ const login = (formEl: FormInstance | undefined) => {
       router.push(HOME_URL);
       ElNotification({
         title: getTimeState(),
-        message: "欢迎登录 Mova-cms",
+        message: "欢迎登录 Mova",
         type: "success",
         duration: 3000
       });

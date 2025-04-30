@@ -1,6 +1,6 @@
 <!-- 💥 这里是异步加载 LayoutComponents -->
 <template>
-  <el-watermark id="watermark" :font="font" :content="watermark ? ['Mova-cms', 'Happy Working'] : ''">
+  <el-watermark id="watermark" :font="font" :content="watermark ? ['Mova', 'Happy Working'] : ''">
     <suspense>
       <template #default>
         <component :is="LayoutComponents[layout]" />
