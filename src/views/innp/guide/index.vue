@@ -67,9 +67,8 @@
 
 <script setup lang="ts" name="user">
 import { Guide } from "@/api/interface/innp";
-import { onBeforeMount, reactive, ref, toRaw } from "vue";
+import { addGuide, delGuide, getGuideList, getOSSSignature, updateGuide } from "@/api/modules/innp";
 import { Plus } from "@element-plus/icons-vue";
-import { getGuideList, addGuide, getOSSSignature, delGuide, updateGuide } from "@/api/modules/innp";
 import {
   ElMessage,
   genFileId,
@@ -80,7 +79,7 @@ import {
   UploadRawFile,
   UploadUserFile
 } from "element-plus";
-import { nextTick } from "vue";
+import { nextTick, onBeforeMount, reactive, ref, toRaw } from "vue";
 
 const handleAddBtn = () => {
   resetForm();
@@ -243,60 +242,50 @@ async function handleDel(id: number) {
 
 <style scoped lang="scss">
 .container {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
 }
-
 .title {
   font-size: 20px;
   font-weight: 700;
 }
-
 .operations {
   align-self: flex-end;
 }
-
 .table {
-  width: 100%;
   flex: 1;
+  width: 100%;
 }
-
 .product_img_preview {
   width: 100%;
 }
-
 .btns {
   display: flex;
   justify-content: center;
 }
-
 .watch_qrcode {
   font-size: 14px;
   color: #606266;
 }
-
 .qrcode_container {
   display: flex;
   justify-content: center;
 }
-
 .qrcode {
   width: 200px;
   height: 200px;
 }
-
 .upload_container {
   width: 100%;
   height: 100%;
 }
-
 .preview_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 </style>

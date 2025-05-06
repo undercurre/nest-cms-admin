@@ -36,7 +36,9 @@
     "src/**/*.vue",
     "build/**/*.ts",
     "build/**/*.d.ts",
-    "vite.config.ts"
+    "vite.config.ts",
+    "src/**/*",
+    "shims-vue.d.ts"
   ],
   "exclude": ["node_modules", "dist", "**/*.js"]
 }

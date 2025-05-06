@@ -136,7 +136,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div style="width: 100%; display: flex; margin-top: 10px">
+          <div style="display: flex; width: 100%; margin-top: 10px">
             <el-input v-model="nutrition_info_key" style="width: 120px" placeholder="营养" />
             <el-input v-model="nutrition_info_value" style="width: 120px" placeholder="数量" />
             <el-button type="primary" style="flex: 1" @click="onAddNutritionItem">增加该项</el-button>
@@ -152,7 +152,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div style="width: 100%; display: flex; margin-top: 10px">
+          <div style="display: flex; width: 100%; margin-top: 10px">
             <el-input v-model="ingredients_name" style="width: 120px" placeholder="食材" />
             <el-input v-model="ingredients_quantity" style="width: 120px" placeholder="数量" />
             <el-button type="primary" style="flex: 1" @click="onAddIngredientsItem">增加该项</el-button>
@@ -172,7 +172,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div style="width: 100%; display: flex; margin-top: 10px">
+          <div style="display: flex; width: 100%; margin-top: 10px">
             <el-input v-model="steps_description" style="width: 240px" placeholder="描述" />
             <el-button type="primary" style="flex: 1" @click="onAddStepsItem">增加该项</el-button>
           </div>
@@ -190,9 +190,8 @@
 
 <script setup lang="ts" name="user">
 import { Diet, Ingredients } from "@/api/interface/innp";
-import { onBeforeMount, reactive, ref, toRaw } from "vue";
+import { addDiet, delDiet, getCategoryList, getDietList, getOSSSignature, getTasteList, updateDiet } from "@/api/modules/innp";
 import { Plus } from "@element-plus/icons-vue";
-import { getDietList, addDiet, getOSSSignature, delDiet, updateDiet, getCategoryList, getTasteList } from "@/api/modules/innp";
 import {
   ElMessage,
   genFileId,
@@ -203,7 +202,7 @@ import {
   UploadRawFile,
   UploadUserFile
 } from "element-plus";
-import { nextTick } from "vue";
+import { nextTick, onBeforeMount, reactive, ref, toRaw } from "vue";
 
 const handleAddBtn = () => {
   resetForm();
@@ -462,60 +461,50 @@ function onAddStepsItem() {
 
 <style scoped lang="scss">
 .container {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
 }
-
 .title {
   font-size: 20px;
   font-weight: 700;
 }
-
 .operations {
   align-self: flex-end;
 }
-
 .table {
-  width: 100%;
   flex: 1;
+  width: 100%;
 }
-
 .product_img_preview {
   width: 100%;
 }
-
 .btns {
   display: flex;
   justify-content: center;
 }
-
 .watch_qrcode {
   font-size: 14px;
   color: #606266;
 }
-
 .qrcode_container {
   display: flex;
   justify-content: center;
 }
-
 .qrcode {
   width: 200px;
   height: 200px;
 }
-
 .upload_container {
   width: 100%;
   height: 100%;
 }
-
 .preview_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 </style>
