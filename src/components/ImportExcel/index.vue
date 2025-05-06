@@ -40,10 +40,10 @@
 </template>
 
 <script setup lang="ts" name="ImportExcel">
-import { ref } from "vue";
 import { useDownload } from "@/hooks/useDownload";
 import { Download } from "@element-plus/icons-vue";
-import { ElNotification, UploadRequestOptions, UploadRawFile } from "element-plus";
+import { ElNotification, UploadRawFile, UploadRequestOptions } from "element-plus";
+import { ref } from "vue";
 
 export interface ExcelParameterProps {
   title: string; // 标题
@@ -145,5 +145,5 @@ defineExpose({
 });
 </script>
 <style lang="scss" scoped>
-@import "./index.scss";
+@import "./index";
 </style>
