@@ -37,10 +37,10 @@
 <script setup lang="ts" name="user">
 import { User } from "@/api/interface/system";
 import { addUser, getUserList } from "@/api/modules/system";
-import { onBeforeMount, reactive, ref } from "vue";
-import dayjs from "dayjs";
 import { Plus } from "@element-plus/icons-vue";
+import dayjs from "dayjs";
 import md5 from "md5";
+import { onBeforeMount, reactive, ref } from "vue";
 
 const handleAddBtn = () => {
   dialogVisible.value = true;
@@ -83,23 +83,20 @@ const handleConfirm = async () => {
 
 <style scoped lang="scss">
 .container {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
 }
-
 .title {
   font-size: 20px;
   font-weight: 700;
 }
-
 .operations {
   align-self: flex-end;
 }
-
 .table {
-  width: 100%;
   flex: 1;
+  width: 100%;
 }
 </style>
