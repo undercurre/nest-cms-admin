@@ -56,26 +56,26 @@ export const getValueBatchByRange = (params: Feishu.NodeParams) => {
  * @name 创建知识库模板
  */
 export const addKnowledgeTemplate = (params: AIKnowLedge.TemplateEntity) => {
-  return http.post<Result>(PORT7 + `/web/createKnowledgeBaseTemplate`, params, { loading: true });
+  return http.post<Result>(PORT7 + `/web/knowledgeBaseTemplate/create`, params, { loading: true });
 };
 /**
  * @name 修改知识库模板
  */
 export const editKnowledgeTemplate = (params: AIKnowLedge.TemplateEntity) => {
-  return http.put<Result>(PORT7 + `/web/updateKnowledgeBaseTemplate`, params, { loading: true });
+  return http.put<Result>(PORT7 + `/web/knowledgeBaseTemplate/update`, params, { loading: true });
 };
 /**
  * @name 删除知识库模板
  */
 export const deleteKnowledgeTemplate = (params: { id: string }) => {
-  return http.delete<Result>(PORT7 + `/web/deleteKnowledgeBaseTemplate`, params, { loading: true });
+  return http.post<Result>(PORT7 + `/web/knowledgeBaseTemplate/${params.id}`, {}, { loading: true });
 };
 /**
  * @name 查询知识库模板
  */
 export const searchKnowledgeTemplate = (params: AIKnowLedge.TemplateEntity) => {
   return http.get<AIKnowLedge.KnowledgeTemplateRes<AIKnowLedge.TemplateEntity>>(
-    PORT7 + `/web/selectKnowledgeBaseTemplate`,
+    PORT7 + `/web/knowledgeBaseTemplate/list`,
     params,
     { loading: true }
   );
@@ -85,25 +85,25 @@ export const searchKnowledgeTemplate = (params: AIKnowLedge.TemplateEntity) => {
  * @name 创建知识库
  */
 export const addKnowledge = (params: AIKnowLedge.Entity) => {
-  return http.post<Result>(PORT7 + `/web/createDocumentInfo`, params, { loading: true });
+  return http.post<Result>(PORT7 + `/web/knowledgeBase/create`, params, { loading: true });
 };
 /**
  * @name 修改知识库
  */
 export const editKnowledge = (params: AIKnowLedge.Entity) => {
-  return http.put<Result>(PORT7 + `/web/updateDocumentInfo`, params, { loading: true });
+  return http.put<Result>(PORT7 + `/web/knowledgeBase/update`, params, { loading: true });
 };
 /**
  * @name 删除知识库
  */
 export const deleteKnowledge = (params: { id: string }) => {
-  return http.delete<Result>(PORT7 + `/web/deleteDocumentInfo`, params, { loading: true });
+  return http.post<Result>(PORT7 + `/web/knowledgeBase/${params.id}`, {}, { loading: true });
 };
 /**
  * @name 查询知识库
  */
 export const searchKnowledge = (params: AIKnowLedge.KnowledgeParams) => {
-  return http.get<AIKnowLedge.KnowledgeResPage<AIKnowLedge.Entity>>(PORT7 + `/web/selectDocumentInfo`, params, { loading: true });
+  return http.get<AIKnowLedge.KnowledgeResPage<AIKnowLedge.Entity>>(PORT7 + `/web/knowledgeBase/list`, params, { loading: true });
 };
 /**
  * @name 重启知识库

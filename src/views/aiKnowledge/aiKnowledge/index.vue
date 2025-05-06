@@ -60,14 +60,19 @@ const knowledgeColumnsConfig = reactive<TableSetting.Columns[]>([
       hit: false
     },
     tagColorMap: {
-      已审核: "#7bb800",
-      已传输: "#faca0a",
-      已使用: "#f56e6e"
+      1: "#7bb800",
+      2: "#faca0a",
+      3: "#f56e6e"
     },
     tagClassMap: {
-      已审核: "icon-success",
-      已传输: "icon-get-fail",
-      已使用: "icon-trans-fail"
+      1: "icon-success",
+      2: "icon-get-fail",
+      3: "icon-trans-fail"
+    },
+    tagMap: {
+      1: "已审核",
+      2: "已传输",
+      3: "已使用"
     },
     width: 120
   }
@@ -120,6 +125,7 @@ const handleEdit = row => {
       ...row,
       labels: row.label?.split(",")
     });
+    templateSelectChange(knowledgeForm.value.templateId);
   });
 };
 // 重启
@@ -156,8 +162,10 @@ const handleDel = async id => {
 const dialogTemplateVisible = ref(false);
 const validatePass = (rule: any, value: any, callback: any) => {
   if (!isFeishuSheetUrl(value)) {
+    errorValidateMap.value[0] = 2;
     callback(new Error("输入的链接不为飞书电子表格链接"));
   } else {
+    errorValidateMap.value[0] = 1;
     callback();
   }
 };
@@ -199,7 +207,7 @@ const knowledgeForm = ref<AIKnowLedge.Entity>({
   description: ""
 });
 const validateLoading = ref(false);
-// 获取知识空间节点信息：
+// 解析知识空间节点信息：
 const parseFeishuUrl = url => {
   // 匹配 /${obj_type}/${token} 的模式
   const regex = /https:\/\/dreametech\.feishu\.cn\/([^\/]+)\/([^\/\?]+)/;
@@ -236,6 +244,7 @@ const getSheetsErrorMap = {
     "resource not found": "资源不存在"
   },
   99991663: "登录过期",
+  99991677: "登录过期",
   131006: {
     "permission denied: wiki space permission denied": "需要为知识空间成员（管理员）",
     "permission denied: node permission denied": "读操作时需要有节点阅读权限。",
@@ -263,6 +272,7 @@ const getNodeInfo = (value: string): Promise<Feishu.NodeParams> => {
       })
       .catch(err => {
         validateLoading.value = false;
+        errorValidateMap.value[4] = 2;
         if (err.response.data.code == 1310213) {
           ElMessageBox.alert(
             "您没有电子表格的阅读或编辑权限。请联系该文档管理员，通过电子表格网页页面右上方 [分享] 入口为您添加权限。",
@@ -295,6 +305,7 @@ const getSheetsInfo = (obj_token: string = ""): Promise<Feishu.Sheets[]> => {
       })
       .catch(err => {
         validateLoading.value = false;
+        errorValidateMap.value[4] = 2;
         if (err.response.data.code == 1310213) {
           ElMessageBox.alert(
             "您没有电子表格的阅读或编辑权限。请联系该文档管理员，通过电子表格网页页面右上方 [分享] 入口为您添加权限。",
@@ -332,6 +343,7 @@ const getValueInfo = (obj_token: string = "", sheets: Feishu.Sheets[]): Promise<
       })
       .catch(err => {
         validateLoading.value = false;
+        errorValidateMap.value[4] = 2;
         if (err.response.data.code == 1310213) {
           ElMessageBox.alert(
             "您没有电子表格的阅读或编辑权限。请联系该文档管理员，通过电子表格网页页面右上方 [分享] 入口为您添加权限。",
@@ -352,6 +364,35 @@ const getValueInfo = (obj_token: string = "", sheets: Feishu.Sheets[]): Promise<
       });
   });
 };
+// 错误信息
+const errorMap = reactive([
+  "输入为飞书wiki/电子表格链接",
+  "输入文件的类型与模板匹配",
+  "电子表格的工作表数量与模板匹配",
+  "电子表格的表头与模板匹配",
+  "不存在其他报错信息"
+]);
+// 标注错误信息：0：默认，1：成功，2：失败
+const errorValidateMap = ref({
+  0: 0,
+  1: 0,
+  2: 0,
+  3: 0,
+  4: 0
+});
+// 重置错误信息
+const resetErrorValidateMap = () => {
+  errorValidateMap.value = {
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0
+  };
+};
+const handleDocumentUrlBlur = () => {
+  resetErrorValidateMap();
+};
 // 解析文档，是否匹配
 const parseDocument = async (value: string) => {
   validateLoading.value = true;
@@ -365,20 +406,25 @@ const parseDocument = async (value: string) => {
   const { obj_type: obj_type_template, obj_token: obj_token_template } = await getNodeInfo(knowledgeForm.value.templateUrl ?? "");
   if (obj_type !== obj_type_template) {
     validateLoading.value = false;
+    errorValidateMap.value[1] = 2;
     return `输入的文件的类型${obj_type}和模板文件的类型${obj_type_template}不同，请检查`;
   }
+  errorValidateMap.value[1] = 1;
   // 获取输入的工作表
   const sheets = await getSheetsInfo(obj_token);
   // 获取模板的工作表
   const sheetsTemplate = await getSheetsInfo(obj_token_template);
   if (sheets.length !== sheetsTemplate.length) {
     validateLoading.value = false;
+    errorValidateMap.value[2] = 2;
     return `输入的文件工作表数量${sheets.length}和模板文件的工作表数量${sheetsTemplate.length}不同，请检查`;
   }
+  errorValidateMap.value[2] = 1;
   // 获取输入的多个工作表范围
   const ranges = await getValueInfo(obj_token, sheets);
   // 获取模板的多个工作表范围
   const rangesTemplate = await getValueInfo(obj_token_template, sheetsTemplate);
+  errorValidateMap.value[4] = 1;
   if (
     !deepEqualIgnoreOrder(
       ranges?.map(item => item.values?.[0]),
@@ -386,8 +432,10 @@ const parseDocument = async (value: string) => {
     )
   ) {
     validateLoading.value = false;
+    errorValidateMap.value[3] = 2;
     return "输入的文件和模板文件的表头不一致，请检查";
   }
+  errorValidateMap.value[3] = 1;
   validateLoading.value = false;
   return "";
 };
@@ -404,6 +452,7 @@ const validateIsMatchedTemplate = async (rule: any, value: any, callback: any) =
     callback();
   }
 };
+// 表单校验规则
 const knowledgeRules = reactive({
   name: [{ required: true, message: "必填", trigger: "blur" }],
   templateId: [{ required: true, message: "必填", trigger: "blur" }],
@@ -420,17 +469,22 @@ const knowledgeRules = reactive({
   ]
 });
 const knowledgeRef = ref();
+// 新增知识库
 const handleAddKnowledge = () => {
   getTemplateList();
   getBaseList();
   actionType.value = "add";
+  resetErrorValidateMap();
   dialogKnowledgeVisible.value = true;
   nextTick(() => {
+    knowledgeForm.value.templateUrl = "";
     knowledgeRef.value?.clearValidate();
     knowledgeRef.value?.resetFields();
   });
 };
+// 保存知识库
 const saveKnowledge = () => {
+  resetErrorValidateMap();
   knowledgeRef.value.validate(async valid => {
     if (valid) {
       const params = {
@@ -446,6 +500,7 @@ const saveKnowledge = () => {
       if (resSuccess) {
         dialogKnowledgeVisible.value = false;
         search();
+        ElMessage.success("保存成功");
       } else {
         ElMessage.error(resMsg);
       }
@@ -454,19 +509,23 @@ const saveKnowledge = () => {
 };
 const creatableSelect = ref();
 const creatableLimit = 5;
+// 标签选择器:聚焦,等于5个时,失去焦点,弹出提示
 const handleLabelFocus = () => {
   setTimeout(() => {
     if ((knowledgeForm.value?.labels?.length ?? 0) >= 5) {
       ElMessage.warning(`只能输入${creatableLimit}个标签`);
+      creatableSelect.value?.blur();
     }
   }, 400);
 };
+// 标签选择器:等于5个时,失去焦点
 const handelLabelChange = e => {
   if (e.length === 5) {
     creatableSelect.value?.blur();
   }
 };
 onBeforeMount(() => {
+  // 获取知识库列表
   getKnowledgeList();
   // TODO: 去掉
   knowledgeList.value = [
@@ -475,36 +534,48 @@ onBeforeMount(() => {
       name: "100001",
       label: "咖啡机,IOT,宠物,洗地机,厨电",
       documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      syncStatus: "已审核"
+      templateId: "1",
+      syncStatus: "1"
     },
     {
       id: "100002",
       name: "100002",
       label: "厨电,IOT",
       documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      syncStatus: "已传输"
+      templateId: "1",
+      syncStatus: "2"
     },
     {
       id: "100003",
       name: "100003",
       label: "洗地机,IOT",
       documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      syncStatus: "已使用"
+      templateId: "1",
+      syncStatus: "3"
     },
     {
       id: "100004",
       name: "100004",
       label: "宠物,IOT",
       documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      syncStatus: "已使用"
+      templateId: "1",
+      syncStatus: "3"
     }
   ];
+  pageConfig.value.total = 35;
   templateList.value = [
     {
       id: "1",
       label: "",
       templateUrl: "https://dreametech.feishu.cn/wiki/OzFCwTRIZi7hb5kifN8cltDtnjc",
       templateName: "模板1",
+      description: "1112"
+    },
+    {
+      id: "2",
+      label: "",
+      templateUrl: "https://dreametech.feishu.cn/wiki/SIrXwvXQGiygeJkUAVRcqzcinKd",
+      templateName: "模板2",
       description: "1112"
     }
   ];
@@ -551,7 +622,7 @@ onBeforeMount(() => {
               v-bind="item?.compProps"
               @click="item?.compProps?.click?.(scoped.row)"
             >
-              {{ row }}
+              {{ item?.tagMap?.[row] ?? row }}
             </Component>
           </el-space>
           <span v-else>{{ scoped.row[item.prop] }}</span>
@@ -625,11 +696,37 @@ onBeforeMount(() => {
           </el-row>
         </el-form-item>
         <el-form-item label="文档链接" prop="documentUrl">
-          <el-input
-            v-model="knowledgeForm.documentUrl"
-            placeholder="请输入飞书电子表格链接"
-            :disabled="actionType != 'add' || !knowledgeForm.templateUrl"
-          />
+          <el-popover
+            class="box-item"
+            placement="right"
+            :visible="!!knowledgeForm.documentUrl && dialogKnowledgeVisible && actionType == 'add'"
+            width="260"
+          >
+            <template #reference>
+              <el-input
+                v-model="knowledgeForm.documentUrl"
+                placeholder="请输入飞书电子表格链接"
+                :disabled="actionType != 'add' || !knowledgeForm.templateUrl"
+                @blur="handleDocumentUrlBlur"
+              />
+            </template>
+            <template #default>
+              <div
+                :class="[
+                  'box-item-content',
+                  errorValidateMap[index] === 2
+                    ? 'box-item-content-error'
+                    : errorValidateMap[index] === 1
+                      ? 'box-item-content-success'
+                      : ''
+                ]"
+                v-for="(item, index) in errorMap"
+                :key="'error' + index"
+              >
+                {{ item }}
+              </div>
+            </template>
+          </el-popover>
         </el-form-item>
         <el-form-item label="标签" prop="labels">
           <el-select
@@ -643,7 +740,6 @@ onBeforeMount(() => {
             default-first-option
             :reserve-keyword="false"
             placeholder="请输入标签"
-            :disabled="actionType != 'add'"
             :teleported="false"
             @focus="handleLabelFocus"
             @change="handelLabelChange"
@@ -779,5 +875,34 @@ onBeforeMount(() => {
 }
 .creatable-select .el-select__popper:has(.el-select-dropdown__empty) {
   display: none;
+}
+.box-item-content {
+  padding-left: 20px;
+
+  --svg-success: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cpath fill='%23000' d='M18 2a16 16 0 1 0 16 16A16 16 0 0 0 18 2m10.45 10.63L15.31 25.76L7.55 18a1.4 1.4 0 0 1 2-2l5.78 5.78l11.14-11.13a1.4 1.4 0 1 1 2 2Z' class='clr-i-solid clr-i-solid-path-1'/%3E%3Cpath fill='none' d='M0 0h36v36H0z'/%3E%3C/svg%3E");
+  --svg-error: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M256 42.667c117.803 0 213.334 95.53 213.334 213.333S373.803 469.334 256 469.334S42.667 373.803 42.667 256S138.197 42.667 256 42.667m48.918 134.25L256 225.836l-48.917-48.917l-30.165 30.165L225.835 256l-48.917 48.918l30.165 30.165L256 286.166l48.918 48.917l30.165-30.165L286.166 256l48.917-48.917z'/%3E%3C/svg%3E");
+}
+.box-item-content::before {
+  position: absolute;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  margin-left: -20px;
+  content: "";
+}
+.box-item-content-success::before {
+  color: #7bb800;
+  background-color: currentColor;
+  mask-image: var(--svg-success);
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+}
+.box-item-content-error::before {
+  color: #f56e6e;
+  background-color: currentColor;
+  mask-image: var(--svg-error);
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
 }
 </style>

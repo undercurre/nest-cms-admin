@@ -111,6 +111,7 @@ export namespace TableSetting {
     component?: string;
     tagClassMap?: object;
     tagColorMap?: object;
+    tagMap?: object;
     compProps?: any;
   }
 }
