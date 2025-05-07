@@ -10,6 +10,7 @@ export namespace AIKnowLedge {
   }
   export interface KnowledgeTemplateRes<T> {
     knowledgeBaseTemplateList: T[];
+    total: number;
   }
   export interface Entity {
     syncStatus?: string;
@@ -24,6 +25,11 @@ export namespace AIKnowLedge {
   }
 
   export interface KnowledgeParams extends Entity {
+    pageSize: number;
+    pageNo: number;
+  }
+
+  export interface KnowledgeTemplateParams extends TemplateEntity {
     pageSize: number;
     pageNo: number;
   }

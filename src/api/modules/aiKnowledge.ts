@@ -73,8 +73,8 @@ export const deleteKnowledgeTemplate = (params: { id: string }) => {
 /**
  * @name 查询知识库模板
  */
-export const searchKnowledgeTemplate = (params: AIKnowLedge.TemplateEntity) => {
-  return http.get<AIKnowLedge.KnowledgeTemplateRes<AIKnowLedge.TemplateEntity>>(
+export const searchKnowledgeTemplate = (params: AIKnowLedge.KnowledgeTemplateParams) => {
+  return http.post<AIKnowLedge.KnowledgeTemplateRes<AIKnowLedge.KnowledgeTemplateParams>>(
     PORT7 + `/web/knowledgeBaseTemplate/list`,
     params,
     { loading: true }
@@ -103,10 +103,12 @@ export const deleteKnowledge = (params: { id: string }) => {
  * @name 查询知识库
  */
 export const searchKnowledge = (params: AIKnowLedge.KnowledgeParams) => {
-  return http.get<AIKnowLedge.KnowledgeResPage<AIKnowLedge.Entity>>(PORT7 + `/web/knowledgeBase/list`, params, { loading: true });
+  return http.post<AIKnowLedge.KnowledgeResPage<AIKnowLedge.Entity>>(PORT7 + `/web/knowledgeBase/list`, params, {
+    loading: true
+  });
 };
 /**
- * @name 重启知识库
+ * @name 同步知识库
  */
 export const reStartKnowledge = (params: { id: string }) => {
   return http.get<Result>(PORT7 + `/web/reStartDocumentInfo`, params, { loading: true });

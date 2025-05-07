@@ -26,7 +26,8 @@ const templateColumnsConfig = reactive<TableSetting.Columns[]>([
       1: "icon-bu"
     },
     compProps: {
-      hit: false
+      hit: false,
+      "disable-transitions": true
     }
   },
   {
@@ -44,20 +45,45 @@ const templateColumnsConfig = reactive<TableSetting.Columns[]>([
   },
   {
     label: "备注",
-    prop: "description"
+    prop: "description",
+    width: 200
   }
 ]);
 const templateList = ref<AIKnowLedge.TemplateEntity[]>([]);
+const pageConfig = ref({
+  pageNo: 1,
+  pageSize: 20,
+  total: 0
+});
 const queryForm = ref({
   templateName: ""
 });
 // 获取数据
+const search = () => {
+  pageConfig.value = {
+    pageNo: 1,
+    pageSize: 20,
+    total: 0
+  };
+  getTemplateList();
+};
 const getTemplateList = () => {
   searchKnowledgeTemplate({
+    pageNo: pageConfig.value.pageNo,
+    pageSize: pageConfig.value.pageSize,
     ...queryForm.value
   }).then(res => {
     templateList.value = res.data.knowledgeBaseTemplateList;
+    pageConfig.value.total = res.data.total;
   });
+};
+const handleSizeChange = val => {
+  pageConfig.value.pageSize = val;
+  getTemplateList();
+};
+const handleCurrentChange = val => {
+  pageConfig.value.pageNo = val;
+  getTemplateList();
 };
 // 编辑
 const actionType = ref("add");
@@ -91,48 +117,18 @@ const handleDel = async id => {
   resSuccess = res.success ?? false;
   resMsg = res.errMessage ?? "";
   if (resSuccess) {
-    getTemplateList();
+    search();
+    ElMessage.success("删除成功");
   } else {
     ElMessage.error(resMsg);
   }
 };
 // 新增模板
 const saveTemplate = () => {
-  getTemplateList();
+  search();
 };
 onBeforeMount(() => {
   getTemplateList();
-  // TODO: 去掉
-  templateList.value = [
-    {
-      id: "100001",
-      templateName: "100001",
-      templateUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      description: "已审核",
-      label: "咖啡机,IOT"
-    },
-    {
-      id: "100002",
-      templateName: "100002",
-      templateUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      description: "已使用",
-      label: "咖啡机,IOT"
-    },
-    {
-      id: "100003",
-      templateName: "100003",
-      templateUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      description: "已传输",
-      label: "咖啡机,IOT"
-    },
-    {
-      id: "100004",
-      templateName: "100004",
-      templateUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      description: "失败",
-      label: "咖啡机,IOT"
-    }
-  ];
 });
 </script>
 <template>
@@ -145,10 +141,10 @@ onBeforeMount(() => {
     </div>
     <el-form :inline="true" :model="queryForm" class="demo-form-inline" justify="space-between">
       <el-form-item label="模版名称">
-        <el-input v-model="queryForm.templateName" placeholder="模版名称" clearable @keyup.enter="getTemplateList" />
+        <el-input v-model="queryForm.templateName" placeholder="模版名称" clearable @keyup.enter="search" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="getTemplateList">查询</el-button>
+        <el-button type="primary" @click="search">查询</el-button>
       </el-form-item>
     </el-form>
     <el-table class="table" :data="templateList" style="width: 100%" show-overflow-tooltip>
@@ -162,7 +158,7 @@ onBeforeMount(() => {
         <template #default="scoped">
           <el-space v-if="item.component && scoped.row[item.prop]">
             <Component
-              v-for="row in scoped.row[item.prop]?.split(',')"
+              v-for="row in scoped.row?.[item.prop]?.toString()?.split(',')"
               :key="row"
               :is="item.component"
               :color="item?.tagColorMap?.[row] ?? item?.tagColorMap?.[1]"
@@ -189,6 +185,19 @@ onBeforeMount(() => {
         </template>
       </el-table-column>
     </el-table>
+    <el-space direction="vertical" alignment="normal" :size="12">
+      <div></div>
+      <el-pagination
+        background
+        layout="total, prev, pager, next, sizes"
+        :page-sizes="[20, 50, 100]"
+        v-model:current-page="pageConfig.pageNo"
+        v-model:page-size="pageConfig.pageSize"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :total="pageConfig.total"
+      />
+    </el-space>
     <!-- 新增模板 -->
     <CreateTemplate
       v-model:dialog-template-visible="dialogTemplateVisible"

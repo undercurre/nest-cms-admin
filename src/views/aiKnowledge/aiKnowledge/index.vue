@@ -33,7 +33,8 @@ const knowledgeColumnsConfig = reactive<TableSetting.Columns[]>([
       1: "#409EFF"
     },
     compProps: {
-      hit: false
+      hit: false,
+      "disable-transitions": true
     },
     tagClassMap: {
       1: "icon-bu"
@@ -74,7 +75,12 @@ const knowledgeColumnsConfig = reactive<TableSetting.Columns[]>([
       2: "已传输",
       3: "已使用"
     },
-    width: 120
+    width: 100
+  },
+  {
+    label: "备注",
+    prop: "description",
+    width: 180
   }
 ]);
 const knowledgeList = ref<AIKnowLedge.Entity[]>([]);
@@ -128,7 +134,7 @@ const handleEdit = row => {
     templateSelectChange(knowledgeForm.value.templateId);
   });
 };
-// 重启
+// 同步
 const handleReStart = async id => {
   let resSuccess: boolean = false;
   let resMsg: string = "";
@@ -154,6 +160,7 @@ const handleDel = async id => {
   resMsg = res.errMessage ?? "";
   if (resSuccess) {
     search();
+    ElMessage.success("删除成功");
   } else {
     ElMessage.error(resMsg);
   }
@@ -184,7 +191,9 @@ const saveTemplate = () => {
 const templateList = ref<AIKnowLedge.TemplateEntity[]>([]);
 const getTemplateList = () => {
   searchKnowledgeTemplate({
-    templateName: ""
+    templateName: "",
+    pageSize: 999999,
+    pageNo: 1
   }).then(res => {
     templateList.value = res.data.knowledgeBaseTemplateList;
   });
@@ -193,9 +202,6 @@ const templateSelectChange = e => {
   knowledgeForm.value.templateUrl = templateList.value.find(item => item.id === e)?.templateUrl;
 };
 const base_list = ref<{ value: string; label: string }[]>([]);
-const getBaseList = () => {
-  base_list.value = [];
-};
 const dialogKnowledgeVisible = ref(false);
 const actionType = ref("add");
 const knowledgeForm = ref<AIKnowLedge.Entity>({
@@ -472,7 +478,6 @@ const knowledgeRef = ref();
 // 新增知识库
 const handleAddKnowledge = () => {
   getTemplateList();
-  getBaseList();
   actionType.value = "add";
   resetErrorValidateMap();
   dialogKnowledgeVisible.value = true;
@@ -527,58 +532,6 @@ const handelLabelChange = e => {
 onBeforeMount(() => {
   // 获取知识库列表
   getKnowledgeList();
-  // TODO: 去掉
-  knowledgeList.value = [
-    {
-      id: "100001",
-      name: "100001",
-      label: "咖啡机,IOT,宠物,洗地机,厨电",
-      documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      templateId: "1",
-      syncStatus: "1"
-    },
-    {
-      id: "100002",
-      name: "100002",
-      label: "厨电,IOT",
-      documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      templateId: "1",
-      syncStatus: "2"
-    },
-    {
-      id: "100003",
-      name: "100003",
-      label: "洗地机,IOT",
-      documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      templateId: "1",
-      syncStatus: "3"
-    },
-    {
-      id: "100004",
-      name: "100004",
-      label: "宠物,IOT",
-      documentUrl: "https://dreametech.feishu.cn/sheets/PyW1skhZghNETNtRTb6cwn0qnyb",
-      templateId: "1",
-      syncStatus: "3"
-    }
-  ];
-  pageConfig.value.total = 35;
-  templateList.value = [
-    {
-      id: "1",
-      label: "",
-      templateUrl: "https://dreametech.feishu.cn/wiki/OzFCwTRIZi7hb5kifN8cltDtnjc",
-      templateName: "模板1",
-      description: "1112"
-    },
-    {
-      id: "2",
-      label: "",
-      templateUrl: "https://dreametech.feishu.cn/wiki/SIrXwvXQGiygeJkUAVRcqzcinKd",
-      templateName: "模板2",
-      description: "1112"
-    }
-  ];
 });
 </script>
 <template>
@@ -614,7 +567,7 @@ onBeforeMount(() => {
         <template #default="scoped">
           <el-space v-if="item.component && scoped.row[item.prop]">
             <Component
-              v-for="row in scoped.row[item.prop]?.split(',')"
+              v-for="row in scoped.row?.[item.prop]?.toString()?.split(',')"
               :key="row"
               :is="item.component"
               :color="item?.tagColorMap?.[row] ?? item?.tagColorMap?.[1]"
@@ -633,7 +586,7 @@ onBeforeMount(() => {
           <div class="btns">
             <el-popconfirm title="确认要重启这一项吗？" confirm-button-type="success" @confirm="handleReStart(scoped.row.id)">
               <template #reference>
-                <el-button color="#119018" plain link>重启</el-button>
+                <el-button color="#119018" plain link>同步</el-button>
               </template>
             </el-popconfirm>
             <el-button color="#409EFF" plain link @click="handleEdit(scoped.row)">修改</el-button>
