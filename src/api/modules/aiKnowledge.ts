@@ -111,5 +111,5 @@ export const searchKnowledge = (params: AIKnowLedge.KnowledgeParams) => {
  * @name 同步知识库
  */
 export const reStartKnowledge = (params: { id: string }) => {
-  return http.get<Result>(PORT7 + `/web/reStartDocumentInfo`, params, { loading: true });
+  return http.post<Result>(PORT7 + `/web/knowledgeBase/sync/${params.id}`, {}, { loading: true });
 };

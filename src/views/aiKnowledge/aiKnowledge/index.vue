@@ -145,6 +145,7 @@ const handleReStart = async id => {
   resMsg = res.errMessage ?? "";
   if (resSuccess) {
     search();
+    ElMessage.success("同步成功");
   } else {
     ElMessage.error(resMsg);
   }
