@@ -45,6 +45,7 @@ export namespace Feishu {
     token?: string;
     obj_token?: string;
     ranges?: string;
+    range?: string;
   }
   export interface Sheets {
     sheet_id: string;
@@ -52,7 +53,7 @@ export namespace Feishu {
     resource_type?: string;
   }
   export interface Ranges {
-    values: string[][] | number[][];
+    values?: string[][] | number[][];
   }
   export interface NodeRes extends Result {
     node: NodeParams;
@@ -62,5 +63,8 @@ export namespace Feishu {
   }
   export interface SheetsRangesRes extends Result {
     valueRanges: Ranges[];
+  }
+  export interface SheetsRangeRes extends Result {
+    valueRange: Ranges;
   }
 }

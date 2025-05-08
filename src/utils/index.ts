@@ -356,18 +356,6 @@ export function getValType(item) {
 }
 
 /**
- * 检查字符串是否为有效的飞书电子表格链接
- * @param url 待检查的URL字符串
- * @returns 返回匹配结果（true/false），或返回匹配的URL（如果returnMatch为true）
- */
-export function isFeishuSheetUrl(url: string): boolean {
-  // 飞书电子表格链接正则（支持带参数）
-  const feishuLinkRegex =
-    /^https:\/\/[a-zA-Z0-9-]+\.feishu\.cn\/(wiki\/[a-zA-Z0-9]+(\?[^#\s]*)?|sheets\/[a-zA-Z0-9]+(\?[^#\s]*)?)(#.*)?$/;
-  return feishuLinkRegex.test(url);
-}
-
-/**
  * 深度比较两个值是否相等-严格按照顺序比对
  * @param a 第一个值
  * @param b 第二个值

@@ -11,7 +11,7 @@ export const getNode = (params: Feishu.NodeParams) => {
     loading: false,
     hideErrorMsg: true,
     headers: {
-      Authorization: "Bearer "
+      Authorization: "Bearer u-f7sd7EAE904HGCqZTo.R1eg11tzwl0wpWG001gGayC0Q"
     }
   });
 };
@@ -27,7 +27,7 @@ export const getSheets = (params: Feishu.NodeParams) => {
       loading: false,
       hideErrorMsg: true,
       headers: {
-        Authorization: "Bearer "
+        Authorization: "Bearer u-f7sd7EAE904HGCqZTo.R1eg11tzwl0wpWG001gGayC0Q"
       }
     }
   );
@@ -46,7 +46,24 @@ export const getValueBatchByRange = (params: Feishu.NodeParams) => {
       loading: false,
       hideErrorMsg: true,
       headers: {
-        Authorization: "Bearer "
+        Authorization: "Bearer u-f7sd7EAE904HGCqZTo.R1eg11tzwl0wpWG001gGayC0Q"
+      }
+    }
+  );
+};
+
+/**
+ * @name 读取单个工作表范围
+ */
+export const getValueSingleByRange = (params: Feishu.NodeParams) => {
+  return http.get<Feishu.SheetsRangeRes>(
+    `${PORT6}/sheets/v2/spreadsheets/${params.obj_token}/values/${params.range}`,
+    {},
+    {
+      loading: false,
+      hideErrorMsg: true,
+      headers: {
+        Authorization: "Bearer u-f7sd7EAE904HGCqZTo.R1eg11tzwl0wpWG001gGayC0Q"
       }
     }
   );
@@ -73,11 +90,11 @@ export const deleteKnowledgeTemplate = (params: { id: string }) => {
 /**
  * @name 查询知识库模板
  */
-export const searchKnowledgeTemplate = (params: AIKnowLedge.KnowledgeTemplateParams) => {
+export const searchKnowledgeTemplate = (params: AIKnowLedge.KnowledgeTemplateParams, loading: boolean = true) => {
   return http.post<AIKnowLedge.KnowledgeTemplateRes<AIKnowLedge.KnowledgeTemplateParams>>(
     PORT7 + `/web/knowledgeBaseTemplate/list`,
     params,
-    { loading: true }
+    { loading: loading }
   );
 };
 
