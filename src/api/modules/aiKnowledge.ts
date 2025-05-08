@@ -4,6 +4,20 @@ import { Result } from "@/api/interface";
 import { AIKnowLedge, Feishu } from "@/api/interface/aiKnowledge";
 
 /**
+ * 临时方案：自建应用获取 tenant_access_token
+ */
+const getTenantAccessToken = (params: { app_id: string; app_secret: string }) => {
+  return http.post<any>(`${PORT6}/auth/v3/tenant_access_token/internal`, params, {
+    loading: false,
+    hideErrorMsg: true
+  });
+};
+const tenantAccessTokenRes: any = await getTenantAccessToken({
+  app_id: "cli_a881b63143ffd01c",
+  app_secret: "hSHrCPD4HWJ9jH6kVxPGMh4pCe1X2YYA"
+});
+const tenant_access_token = tenantAccessTokenRes?.tenant_access_token;
+/**
  * @name 获取知识空间节点信息
  */
 export const getNode = (params: Feishu.NodeParams) => {
@@ -11,7 +25,7 @@ export const getNode = (params: Feishu.NodeParams) => {
     loading: false,
     hideErrorMsg: true,
     headers: {
-      Authorization: "Bearer u-f7sd7EAE904HGCqZTo.R1eg11tzwl0wpWG001gGayC0Q"
+      Authorization: `Bearer ${tenant_access_token}`
     }
   });
 };
@@ -27,7 +41,7 @@ export const getSheets = (params: Feishu.NodeParams) => {
       loading: false,
       hideErrorMsg: true,
       headers: {
-        Authorization: "Bearer u-f7sd7EAE904HGCqZTo.R1eg11tzwl0wpWG001gGayC0Q"
+        Authorization: `Bearer ${tenant_access_token}`
       }
     }
   );
@@ -46,7 +60,7 @@ export const getValueBatchByRange = (params: Feishu.NodeParams) => {
       loading: false,
       hideErrorMsg: true,
       headers: {
-        Authorization: "Bearer u-f7sd7EAE904HGCqZTo.R1eg11tzwl0wpWG001gGayC0Q"
+        Authorization: `Bearer ${tenant_access_token}`
       }
     }
   );
@@ -63,7 +77,7 @@ export const getValueSingleByRange = (params: Feishu.NodeParams) => {
       loading: false,
       hideErrorMsg: true,
       headers: {
-        Authorization: "Bearer u-f7sd7EAE904HGCqZTo.R1eg11tzwl0wpWG001gGayC0Q"
+        Authorization: `Bearer ${tenant_access_token}`
       }
     }
   );
