@@ -298,12 +298,17 @@ const handleImgChange = async (file: UploadFile, fileList: UploadFiles) => {
       message: "文件上传中，请稍等...",
       duration: 1500
     });
-    const res = await fetch(signatureVideoRes.data.url ?? "", {
+    // 确保window.location.protocol结尾有冒号（有些浏览器可能没有）
+    const currentProtocol = window.location.protocol.endsWith(":") ? window.location.protocol : window.location.protocol + ":";
+
+    // 替换http:或https:为当前协议
+    const signatureUrl = signatureVideoRes?.data?.url?.replace(/^https?:/, currentProtocol);
+    const res = await fetch(signatureUrl ?? "", {
       method: "PUT",
       body: file.raw
     });
     uploadImageLoading.value = false;
-    form.imageOssUrl = signatureVideoRes.data.url?.split("?")?.[0] ?? "";
+    form.imageOssUrl = signatureUrl?.split("?")?.[0] ?? "";
     if (res.status === 200) {
       ElMessage.success("文件上传成功");
     }
@@ -373,12 +378,17 @@ const handleManualChange = async (uploadFile: UploadFile) => {
       message: "文件上传中，请稍等...",
       duration: 1500
     });
-    const res = await fetch(signatureManualRes.data.url ?? "", {
+    // 确保window.location.protocol结尾有冒号（有些浏览器可能没有）
+    const currentProtocol = window.location.protocol.endsWith(":") ? window.location.protocol : window.location.protocol + ":";
+
+    // 替换http:或https:为当前协议
+    const signatureUrl = signatureManualRes?.data?.url?.replace(/^https?:/, currentProtocol);
+    const res = await fetch(signatureUrl ?? "", {
       method: "PUT",
       body: uploadFile.raw
     });
     uploadLoading.value = false;
-    form.manualOssUrl = signatureManualRes?.data?.url?.split("?")?.[0] ?? "";
+    form.manualOssUrl = signatureUrl?.split("?")?.[0] ?? "";
     if (res.status === 200) {
       ElMessage.success("文件上传成功");
     }

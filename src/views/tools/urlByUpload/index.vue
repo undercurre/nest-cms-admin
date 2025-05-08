@@ -24,14 +24,21 @@ watch(
         });
         uploadLoading.value = true;
         try {
-          const res = await fetch(signatureUploadRes.data.url ?? "", {
+          // 确保window.location.protocol结尾有冒号（有些浏览器可能没有）
+          const currentProtocol = window.location.protocol.endsWith(":")
+            ? window.location.protocol
+            : window.location.protocol + ":";
+
+          // 替换http:或https:为当前协议
+          const signatureUrl = signatureUploadRes?.data?.url?.replace(/^https?:/, currentProtocol);
+          const res = await fetch(signatureUrl ?? "", {
             method: "PUT",
             body: item.raw
           });
           uploadLoading.value = false;
           if (res.status === 200) {
             item.status = "success";
-            uploadedFileList.value.push({ ...item, url: signatureUploadRes?.data?.url?.split("?")?.[0] ?? "" });
+            uploadedFileList.value.push({ ...item, url: signatureUrl?.split("?")?.[0] ?? "" });
           } else {
             item.status = "fail";
             ElMessage.error("文件上传失败");
@@ -84,27 +91,27 @@ const handleFileChange = async (file: UploadFile, uploadFiles: UploadFiles) => {
 </template>
 <style lang="scss" scoped>
 .uploaded-box {
+  padding: 12px 12px 2px;
   margin-top: 10px;
   background: #ffffff;
-  padding: 12px 12px 2px;
   .uploaded-item {
     display: flex;
     align-items: center;
     padding: 4px 12px;
-    background: #f0f0f0;
     margin-bottom: 10px;
+    background: #f0f0f0;
   }
   .uploaded-name {
     width: 300px;
   }
   .uploaded-url-flex {
-    margin-left: 40px;
     display: flex;
     align-items: center;
+    margin-left: 40px;
   }
   .uploaded-url {
-    color: #afafaf;
     margin-right: 16px;
+    color: #afafaf;
   }
   .ml-16px {
     margin-left: 16px;
