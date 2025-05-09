@@ -56,7 +56,7 @@
           <el-upload
             class="upload_container"
             :action="videoAction"
-            :file-list="uploadVideoFileList"
+            :file-list="uploadFileList"
             drag
             ref="uploadVideo"
             :auto-upload="false"
@@ -84,8 +84,9 @@
 <script setup lang="ts" name="user">
 // import axios from "axios";
 import { Guide } from "@/api/interface/innp";
-import { addGuide, delGuide, getGuideList, getOSSSignature, updateGuide } from "@/api/modules/innp";
+import { addGuide, delGuide, getGuideList, updateGuide } from "@/api/modules/innp";
 import ExcelImport from "@/components/ExcelImport/index.vue";
+import { useOssUpload } from "@/hooks/useOssUpload";
 import { Plus } from "@element-plus/icons-vue";
 import {
   ElMessage,
@@ -163,7 +164,6 @@ const resetForm = () => {
 };
 
 const uploadVideo = ref<UploadInstance>();
-const uploadVideoFileList = ref<UploadUserFile[]>([]);
 const videoAction = ref("#");
 const extraVideoData = ref<{
   key: string;
@@ -189,41 +189,14 @@ const getUrlConcat = (url: string) => {
 };
 
 // 上传loading
-const uploadLoading = ref(false);
-const handleVideoChange = async (uploadFile: UploadFile) => {
-  const isVideo = ["video/mp4", "video/mov", "video/webm"].includes(uploadFile?.raw?.type ?? "");
-  if (!isVideo) {
-    uploadVideoFileList.value = [];
-    return ElMessage.error("文件只能是.mp4、.mov或.webm格式!");
-  }
-  const signatureVideoRes = await getOSSSignature({
-    headerContentType: uploadFile?.raw?.type ?? "",
-    fileType: uploadFile?.raw?.type?.split("/")?.[1] ?? ""
+const { uploadLoading, uploadFileList, setUploadFileList, handleFileChange } = useOssUpload({
+  accept: ["video/mp4", "video/mov", "video/webm"],
+  acceptError: "文件只能是.mp4、.mov或.webm格式!"
+});
+const handleVideoChange = async (file: UploadFile) => {
+  handleFileChange(file).then(res => {
+    form.video = res;
   });
-  uploadLoading.value = true;
-  try {
-    ElMessage.info({
-      message: "文件上传中，请稍等...",
-      duration: 1500
-    });
-    // 确保window.location.protocol结尾有冒号（有些浏览器可能没有）
-    const currentProtocol = window.location.protocol.endsWith(":") ? window.location.protocol : window.location.protocol + ":";
-
-    // 替换http:或https:为当前协议
-    const signatureUrl = signatureVideoRes?.data?.url?.replace(/^https?:/, currentProtocol);
-    const res = await fetch(signatureUrl ?? "", {
-      method: "PUT",
-      body: uploadFile.raw
-    });
-    uploadLoading.value = false;
-    form.video = signatureUrl?.split("?")?.[0] ?? "";
-    if (res.status === 200) {
-      ElMessage.success("文件上传成功");
-    }
-  } catch (error) {
-    uploadLoading.value = false;
-    ElMessage.error("文件上传失败");
-  }
 };
 
 const handleVideoSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
@@ -280,12 +253,12 @@ async function handleEditStart(row: Guide.Entity) {
     description_en: others.description_en || ""
   });
   dialogActionType.value = "edit";
-  const fakerImgRawFile: UploadUserFile = {
+  const fakerImgRawFile: UploadUserFile | UploadFile = {
     // 从 url decodeURIComponent 解码成中文
     name: getFileNameFromUrl(decodeURIComponent(row.video)) || "video.mp4",
     url: getUrlConcat(row.video)
   };
-  uploadVideoFileList.value = [fakerImgRawFile];
+  setUploadFileList([fakerImgRawFile]);
   dialogVisible.value = true;
   nextTick(() => {
     ruleForm.value.clearValidate();
