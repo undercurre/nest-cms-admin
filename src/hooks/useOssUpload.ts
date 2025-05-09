@@ -31,10 +31,10 @@ export function useOssUpload({
         }
       }
       if (maxSize) {
-        const isLt5M = (file?.size ?? 0) < maxSize;
+        const isLt5M = (file?.size ?? 0) < maxSize * 1024 * 1024;
         if (!isLt5M) {
           setUploadFileList([]);
-          return ElMessage.error("文件大小不能超过 5MB!");
+          return ElMessage.error(`文件大小不能超过 ${maxSize}MB!`);
         }
       }
       const signatureRes = await getOSSSignature({
