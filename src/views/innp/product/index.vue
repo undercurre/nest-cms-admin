@@ -122,8 +122,9 @@
 
 <script setup lang="ts" name="user">
 import { Product } from "@/api/interface/innp";
-import { addProduct, batchCreateProduct, delProduct, getOSSSignature, getProductList, updateProduct } from "@/api/modules/innp";
+import { addProduct, batchCreateProduct, delProduct, getProductList, updateProduct } from "@/api/modules/innp";
 import ExcelImport from "@/components/ExcelImport/index.vue";
+import { useOssUpload } from "@/hooks/useOssUpload";
 import { Plus } from "@element-plus/icons-vue";
 import {
   ElMessage,
@@ -243,12 +244,11 @@ const resetForm = () => {
     descriptionEn: "",
     manualOssUrl: ""
   });
-  uploadImgFileList.value = [];
-  uploadManualFileList.value = [];
+  setUploadImgFileList([]);
+  setUploadManualFileList([]);
 };
 
 const uploadImg = ref<UploadInstance>();
-const uploadImgFileList = ref<UploadUserFile[]>([]);
 const uploadImgSuccessMark = ref(false);
 const imgAction = ref("#");
 const extraImgData = ref<{
@@ -273,47 +273,20 @@ const getUrlConcat = (url: string) => {
   return `${window.location.protocol}//${url}`;
 };
 // 上传图片接口对接
-const uploadImageLoading = ref(false);
-const handleImgChange = async (file: UploadFile, fileList: UploadFiles) => {
-  console.log("uploadImg", fileList, file);
-  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file?.raw?.type ?? "");
-  const isLt5M = (file.size ?? 0) / 1024 / 1024 < 5;
-  if (!isImg) {
-    uploadImgFileList.value = [];
-    return ElMessage.error("文件只能是.jpg, .jpeg, .png格式!");
-  }
-  if (!isLt5M) {
-    uploadImgFileList.value = [];
-    return ElMessage.error("文件大小不能超过 5MB!");
-  }
-  const signatureVideoRes = await getOSSSignature({
-    headerContentType: file?.raw?.type ?? "",
-    fileType: file?.raw?.type?.split("/")?.[1] ?? ""
+const {
+  uploadLoading: uploadImageLoading,
+  uploadFileList: uploadImgFileList,
+  setUploadFileList: setUploadImgFileList,
+  handleFileChange: handleImgFileChange
+} = useOssUpload({
+  accept: ["image/jpg", "image/jpeg", "image/png"],
+  acceptError: "文件只能是.jpg, .jpeg, .png格式!",
+  maxSize: 5 * 1024 * 1024
+});
+const handleImgChange = async (file: UploadFile) => {
+  handleImgFileChange(file).then(res => {
+    form.imageOssUrl = res;
   });
-  uploadImageLoading.value = true;
-  try {
-    ElMessage.info({
-      message: "文件上传中，请稍等...",
-      duration: 1500
-    });
-    // 确保window.location.protocol结尾有冒号（有些浏览器可能没有）
-    const currentProtocol = window.location.protocol.endsWith(":") ? window.location.protocol : window.location.protocol + ":";
-
-    // 替换http:或https:为当前协议
-    const signatureUrl = signatureVideoRes?.data?.url?.replace(/^https?:/, currentProtocol);
-    const res = await fetch(signatureUrl ?? "", {
-      method: "PUT",
-      body: file.raw
-    });
-    uploadImageLoading.value = false;
-    form.imageOssUrl = signatureUrl?.split("?")?.[0] ?? "";
-    if (res.status === 200) {
-      ElMessage.success("文件上传成功");
-    }
-  } catch (error) {
-    uploadImageLoading.value = false;
-    ElMessage.error("文件上传失败");
-  }
 };
 
 const handleImgSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
@@ -325,7 +298,6 @@ const handleImgSuccess = (response: any, uploadFile: UploadFile, uploadFiles: Up
 };
 
 const uploadManual = ref<UploadInstance>();
-const uploadManualFileList = ref<UploadUserFile[]>([]);
 const uploadManualSuccessMark = ref(false);
 const manualAction = ref("#");
 const extraManualData = ref<{
@@ -342,58 +314,20 @@ const handleManualExceed: UploadProps["onExceed"] = files => {
   uploadManual.value!.handleStart(file);
 };
 // 上传loading
-const uploadLoading = ref(false);
-const handleManualChange = async (uploadFile: UploadFile) => {
-  const isPdf = ["application/pdf"].includes(uploadFile?.raw?.type ?? "");
-  const isLt5M = (uploadFile.size ?? 0) / 1024 / 1024 < 5;
-  if (!isPdf) {
-    uploadManualFileList.value = [];
-    return ElMessage.error("文件只能是.pdf格式!");
-  }
-  if (!isLt5M) {
-    uploadManualFileList.value = [];
-    return ElMessage.error("文件大小不能超过 5MB!");
-  }
-  const allowedTypes = [
-    "image/jpg",
-    "image/jpeg",
-    "image/png",
-    "application/pdf",
-    "video/mp4",
-    "video/mov",
-    "video/webm"
-  ] as const;
-  if ((uploadFile.raw && !uploadFile.raw.type) || !allowedTypes.includes(uploadFile.raw && (uploadFile.raw.type as any))) {
-    return ElMessage.error("不支持的文件类型");
-  }
-  const signatureManualRes = await getOSSSignature({
-    headerContentType: uploadFile?.raw?.type,
-    fileType: uploadFile?.raw?.type?.split("/")?.[1]
+const {
+  uploadLoading,
+  uploadFileList: uploadManualFileList,
+  setUploadFileList: setUploadManualFileList,
+  handleFileChange: handleManualFileChange
+} = useOssUpload({
+  accept: ["application/pdf"],
+  acceptError: "文件只能是.pdf格式!",
+  maxSize: 5 * 1024 * 1024
+});
+const handleManualChange = async (file: UploadFile) => {
+  handleManualFileChange(file).then(res => {
+    form.manualOssUrl = res;
   });
-  uploadLoading.value = true;
-  try {
-    ElMessage.info({
-      message: "文件上传中，请稍等...",
-      duration: 1500
-    });
-    // 确保window.location.protocol结尾有冒号（有些浏览器可能没有）
-    const currentProtocol = window.location.protocol.endsWith(":") ? window.location.protocol : window.location.protocol + ":";
-
-    // 替换http:或https:为当前协议
-    const signatureUrl = signatureManualRes?.data?.url?.replace(/^https?:/, currentProtocol);
-    const res = await fetch(signatureUrl ?? "", {
-      method: "PUT",
-      body: uploadFile.raw
-    });
-    uploadLoading.value = false;
-    form.manualOssUrl = signatureUrl?.split("?")?.[0] ?? "";
-    if (res.status === 200) {
-      ElMessage.success("文件上传成功");
-    }
-  } catch (error) {
-    uploadLoading.value = false;
-    ElMessage.error("文件上传失败");
-  }
 };
 const handleManualSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
   console.log("manualSuccess", response, uploadFile, uploadFiles);
@@ -491,8 +425,8 @@ async function handleEditStart(row: Product.Entity) {
     name: getFileNameFromUrl(decodeURIComponent(row.manualOssUrl)) || "manual.pdf",
     url: getUrlConcat(row.manualOssUrl)
   };
-  uploadImgFileList.value = [fakerImgRawFile];
-  uploadManualFileList.value = [fakerManualRawFile];
+  setUploadImgFileList([fakerImgRawFile]);
+  setUploadManualFileList([fakerManualRawFile]);
   dialogVisible.value = true;
   nextTick(() => {
     ruleForm.value.clearValidate();
