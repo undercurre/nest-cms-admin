@@ -495,7 +495,7 @@ const getUrlConcat = (url: string) => {
 const { uploadLoading, uploadFileList, setUploadFileList, handleFileChange } = useOssUpload({
   accept: ["image/jpg", "image/jpeg", "image/png"],
   acceptError: "文件只能是.jpg, .jpeg, .png格式!",
-  maxSize: 5 * 1024 * 1024
+  maxSize: 5
 });
 const handleImageChange = async (file: UploadFile) => {
   handleFileChange(file).then(res => {
