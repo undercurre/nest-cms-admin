@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { getOSSSignature } from "@/api/modules/innp";
-import { ElMessage, UploadFile, UploadFiles } from "element-plus";
+import { useOssUpload } from "@/hooks/useOssUpload";
+import { ElMessage, UploadFile, UploadFiles, UploadUserFile } from "element-plus";
 import { ref, watch } from "vue";
+const uploadedFileList = ref([] as Array<UploadUserFile>);
 
-const uploadFileList = ref([] as Array<UploadFile>);
-const uploadedFileList = ref([] as Array<UploadFile>);
-const uploadLoading = ref(false);
+const { uploadFileList, setUploadFileList, handleFileChange: handleFileUploadChange } = useOssUpload({ isMultiple: true });
 watch(
   () => uploadFileList.value,
-  async (val, oldVal) => {
+  async (val: any, oldVal) => {
     if (val.length !== oldVal.length) {
       ElMessage.info({
         message: "文件上传中，请稍等...",
@@ -18,29 +17,14 @@ watch(
     for (const item of val) {
       if (item.status === "ready") {
         item.status = "uploading";
-        const signatureUploadRes = await getOSSSignature({
-          headerContentType: item?.raw?.type,
-          fileType: item?.raw?.type?.split("/")?.[1]
-        });
-        uploadLoading.value = true;
-        try {
-          const res = await fetch(signatureUploadRes.data.url ?? "", {
-            method: "PUT",
-            body: item.raw
-          });
-          uploadLoading.value = false;
-          if (res.status === 200) {
+        await handleFileUploadChange(item)
+          .then(res => {
             item.status = "success";
-            uploadedFileList.value.push({ ...item, url: signatureUploadRes?.data?.url?.split("?")?.[0] ?? "" });
-          } else {
+            uploadedFileList.value.push({ ...item, url: res });
+          })
+          .catch(() => {
             item.status = "fail";
-            ElMessage.error("文件上传失败");
-          }
-        } catch (error) {
-          uploadLoading.value = false;
-          item.status = "fail";
-          ElMessage.error("文件上传失败");
-        }
+          });
       }
     }
 
@@ -50,7 +34,7 @@ watch(
   }
 );
 const handleFileChange = async (file: UploadFile, uploadFiles: UploadFiles) => {
-  uploadFileList.value = uploadFiles;
+  setUploadFileList(uploadFiles);
 };
 </script>
 <template>

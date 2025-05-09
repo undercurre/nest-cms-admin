@@ -118,7 +118,7 @@
         <el-form-item label="图片" prop="image">
           <el-upload
             :action="imageAction"
-            :file-list="uploadImageFileList"
+            :file-list="uploadFileList"
             ref="uploadImage"
             list-type="picture-card"
             :auto-upload="false"
@@ -259,8 +259,9 @@
 
 <script setup lang="ts" name="user">
 import { Diet, Ingredients } from "@/api/interface/innp";
-import { addDiet, delDiet, getCategoryList, getDietList, getOSSSignature, getTasteList, updateDiet } from "@/api/modules/innp";
+import { addDiet, delDiet, getCategoryList, getDietList, getTasteList, updateDiet } from "@/api/modules/innp";
 import ExcelImport from "@/components/ExcelImport/index.vue";
+import { useOssUpload } from "@/hooks/useOssUpload";
 import { deepClone } from "@/utils";
 import { Plus } from "@element-plus/icons-vue";
 import {
@@ -467,7 +468,6 @@ const resetForm = () => {
 };
 
 const uploadImage = ref<UploadInstance>();
-const uploadImageFileList = ref<UploadUserFile[]>([]);
 const imageAction = ref("#");
 const extraImageData = ref<{
   key: string;
@@ -492,43 +492,15 @@ const getUrlConcat = (url: string) => {
   return `${window.location.protocol}//${url}`;
 };
 // 上传loading
-const uploadLoading = ref(false);
-const handleImageChange = async (file: UploadFile, fileList: UploadFiles) => {
-  console.log("uploadImg", fileList, file);
-  const isImg = ["image/jpg", "image/jpeg", "image/png"].includes(file?.raw?.type ?? "");
-  const isLt5M = (file?.size ?? 0) / 1024 / 1024 < 5;
-  if (!isImg) {
-    uploadImageFileList.value = [];
-    return ElMessage.error("文件只能是.jpg, .jpeg, .png格式!");
-  }
-  if (!isLt5M) {
-    uploadImageFileList.value = [];
-    return ElMessage.error("文件大小不能超过 5MB!");
-  }
-
-  const signatureVideoRes = await getOSSSignature({
-    headerContentType: file?.raw?.type ?? "",
-    fileType: file?.raw?.type?.split("/")?.[1] ?? ""
+const { uploadLoading, uploadFileList, setUploadFileList, handleFileChange } = useOssUpload({
+  accept: ["image/jpg", "image/jpeg", "image/png"],
+  acceptError: "文件只能是.jpg, .jpeg, .png格式!",
+  maxSize: 5 * 1024 * 1024
+});
+const handleImageChange = async (file: UploadFile) => {
+  handleFileChange(file).then(res => {
+    form.image = res;
   });
-  uploadLoading.value = true;
-  try {
-    ElMessage.info({
-      message: "文件上传中，请稍等...",
-      duration: 1500
-    });
-    const res = await fetch(signatureVideoRes.data.url ?? "", {
-      method: "PUT",
-      body: file.raw
-    });
-    uploadLoading.value = false;
-    form.image = signatureVideoRes.data.url?.split("?")?.[0] ?? "";
-    if (res.status === 200) {
-      ElMessage.success("文件上传成功");
-    }
-  } catch (error) {
-    uploadLoading.value = false;
-    ElMessage.error("文件上传失败");
-  }
 };
 
 const handleImageSuccess = (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {
@@ -606,7 +578,7 @@ async function handleEditStart(row: Diet.Entity) {
     name: getFileNameFromUrl(decodeURIComponent(row.image)) || "image.png",
     url: getUrlConcat(row.image)
   };
-  uploadImageFileList.value = [fakerImgRawFile];
+  setUploadFileList([fakerImgRawFile]);
   dialogVisible.value = true;
   nextTick(() => {
     ruleForm.value.clearValidate();
