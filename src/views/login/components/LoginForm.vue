@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" size="large">
+  <el-form v-if="!authHtml" ref="loginFormRef" :model="loginForm" :rules="loginRules" size="large">
     <el-form-item prop="username">
       <el-input v-model="loginForm.username" placeholder="用户名：admin / user">
         <template #prefix>
@@ -19,20 +19,42 @@
       </el-input>
     </el-form-item>
   </el-form>
+  <div v-if="authHtml" class="three-auth-area" ref="authContainer" v-html="authHtml"></div>
   <div class="login-btn">
-    <el-button :icon="CircleClose" round size="large" @click="resetForm(loginFormRef)"> 重置 </el-button>
-    <el-button :icon="UserFilled" round size="large" type="primary" :loading="loading" @click="login(loginFormRef)">
+    <el-button
+      :style="{ width: !authHtml ? '50%' : '100%' }"
+      :icon="CircleClose"
+      round
+      size="large"
+      @click="resetForm(loginFormRef)"
+    >
+      重置
+    </el-button>
+    <el-button
+      v-if="!authHtml"
+      :icon="UserFilled"
+      round
+      size="large"
+      type="primary"
+      :loading="loading"
+      @click="login(loginFormRef)"
+    >
       登录
     </el-button>
+  </div>
+  <div class="three-partner">
+    <el-tooltip class="box-item" effect="dark" content="飞书登录" placement="bottom-start">
+      <img @click="go2FeishuLogin" class="icon" src="@/assets/images/feishu.png" />
+    </el-tooltip>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { HOME_URL } from "@/config";
 import { Login } from "@/api/interface";
-import { ElNotification } from "element-plus";
+import { ElMessage, ElNotification } from "element-plus";
 import { useUserStore } from "@/stores/modules/user";
 import { useTabsStore } from "@/stores/modules/tabs";
 import { useKeepAliveStore } from "@/stores/modules/keepAlive";
@@ -40,11 +62,12 @@ import { initDynamicRouter } from "@/routers/modules/dynamicRouter";
 import { CircleClose, UserFilled } from "@element-plus/icons-vue";
 import type { ElForm } from "element-plus";
 import { getTimeState } from "@/utils";
-import { loginApi } from "@/api/modules/login";
+import { feishuLoginApi, loginApi } from "@/api/modules/login";
 import md5 from "md5";
 // import { loginApi } from "@/api/modules/login";
 // import md5 from "md5";
 
+const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
 const tabsStore = useTabsStore();
@@ -98,13 +121,53 @@ const login = (formEl: FormInstance | undefined) => {
   });
 };
 
+const authHtml = ref(""); // 存储飞书返回的 HTML 字符串
+
+// 飞书登录
+const go2FeishuLogin = async () => {
+  window.location.href = "http://172.27.65.66:20040/knowledge-base-api/oauth/feishu/render";
+};
+
+const handleFeishuCallback = async () => {
+  const code = route.query.code as string;
+  const state = route.query.state as string;
+
+  try {
+    // 发送 code 到后端换取 Token
+    const { data } = await feishuLoginApi(code, state);
+    console.log(data);
+    userStore.setToken(data.token);
+    userStore.userInfo.name = loginForm.username;
+    // 2.添加动态路由
+    await initDynamicRouter();
+
+    // 3.清空 tabs、keepAlive 数据
+    tabsStore.setTabs([]);
+    keepAliveStore.setKeepAliveName([]);
+
+    // 4.跳转到首页
+    router.push(HOME_URL);
+    ElNotification({
+      title: getTimeState(),
+      message: "欢迎登录 Mova",
+      type: "success",
+      duration: 3000
+    });
+  } catch (err) {
+    ElMessage.error("登录失败");
+  }
+};
+
 // resetForm
 const resetForm = (formEl: FormInstance | undefined) => {
+  authHtml.value = "";
   if (!formEl) return;
   formEl.resetFields();
 };
 
 onMounted(() => {
+  // 监听飞书重定向回调
+  handleFeishuCallback();
   // 监听 enter 事件（调用登录）
   document.onkeydown = (e: KeyboardEvent) => {
     if (e.code === "Enter" || e.code === "enter" || e.code === "NumpadEnter") {
@@ -120,5 +183,17 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-@import "../index.scss";
+@import "../index";
+.three-auth-area {
+  width: 100%;
+  height: 300px;
+}
+.three-partner {
+  width: 100%;
+  height: 100px;
+  .icon {
+    width: 100px;
+    height: 100px;
+  }
+}
 </style>
