@@ -283,7 +283,7 @@ const {
 } = useOssUpload({
   accept: ["image/jpg", "image/jpeg", "image/png"],
   acceptError: "文件只能是.jpg, .jpeg, .png格式!",
-  maxSize: 5 * 1024 * 1024
+  maxSize: 5
 });
 const handleImgChange = async (file: UploadFile) => {
   handleImgFileChange(file).then(res => {
@@ -324,7 +324,7 @@ const {
 } = useOssUpload({
   accept: ["application/pdf"],
   acceptError: "文件只能是.pdf格式!",
-  maxSize: 5 * 1024 * 1024
+  maxSize: 5
 });
 const handleManualChange = async (file: UploadFile) => {
   handleManualFileChange(file).then(res => {
