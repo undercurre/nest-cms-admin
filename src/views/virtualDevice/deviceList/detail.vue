@@ -261,7 +261,7 @@ onBeforeMount(() => {
           >
           </el-table-column>
         </el-table>
-        <el-empty v-else image-size="200px" description="请选择协议"></el-empty>
+        <el-empty v-else :image-size="200" description="请选择协议"></el-empty>
       </div>
       <div class="box">
         <div class="protocol-title">MQTT日志</div>
@@ -287,7 +287,7 @@ onBeforeMount(() => {
         <div class="protocol-view-box" v-if="selectList.length">
           <JsonToView :trans-json="transJson" />
         </div>
-        <el-empty v-else image-size="60px" description="请勾选协议字段查看视图"></el-empty>
+        <el-empty v-else :image-size="60" description="请勾选协议字段查看视图"></el-empty>
       </div>
       <div class="box">
         <div class="protocol-title">操作历史列表</div>
